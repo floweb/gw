@@ -30,7 +30,7 @@ Le fichier installgw.sh va installer les dépendances (le tcsh, donc mais aussi 
 A chaque mise à jour du script lui-même ou de sa configuration (_gw.conf_), *relancer installgw.sh*
 
 ## Utilisation
-Pour un premier coup d'oeil rapide : Lancer gw sans argument et vous obtiendrait la liste des services disponibles sur la machine
+Pour un premier coup d'oeil rapide : Lancer gw sans argument et vous obtiendrez la liste des services disponibles sur la machine
 
 Pour utiliser une commande de gw, taper simplement _gw maCommande_
 
@@ -39,4 +39,4 @@ Testé sur les Debian Lenny et Squeeze
 
 Ma participation à l'écriture de ce script concerne seulement sa mise à jour pour gérer les distributions Debian (il était autrefois fait pour RedHat) et quelques ajouts de fonctionnalités
 
-L'idée et le crédit pour le code revient à l'equipe SI de l'Université de Rennes 1
+L'idée et le crédit pour le code revient à l'equipe SI de l'Université de Rennes 1 qui utilise un dérivé de ce script depuis plus de 10 ans
