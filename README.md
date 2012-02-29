@@ -18,8 +18,11 @@ GW est un simple script tcsh, il dépend donc de ce shell qui a beaucoup de déf
 
 ## Installation & configuration
 Il vous faut renseigner le _gw.conf_ selon la syntaxe suivante :
+
 	NomDeMachine=\(^service1\|^service2\|^service3\|^service4\)
+
 	ou par exemple :
+	
 	toto=\(^apache\|^mysql\)
 
 Le fichier installgw.sh va installer les dépendances (le tcsh, donc mais aussi rsync)
