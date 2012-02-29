@@ -35,6 +35,8 @@ Pour un premier coup d'oeil rapide : Lancer gw sans argument et vous obtiendrez 
 Pour utiliser une commande de gw, taper simplement _gw maCommande_
 
 ## Notes
+Le contenu présent dans ce dépot est publié sous les termes de la [Licence publique générale GNU v3](http://www.gnu.org/licenses/gpl.txt/ "Licence publique générale GNU v3")
+
 Testé sur les Debian Lenny et Squeeze
 
 Ma participation à l'écriture de ce script concerne seulement sa mise à jour pour gérer les distributions Debian (il était autrefois fait pour RedHat) et quelques ajouts de fonctionnalités
