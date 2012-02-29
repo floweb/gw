@@ -11,11 +11,11 @@ export DESTCONFGW="/etc/gw.conf"
 export DESTGWBIN="/usr/local/bin/gw"
 
 # Install des dépendances si besoin
-if [ `dpkg -l | grep -E 'tcsh|rsync|lsb-release' | wc -l` -ne 3 ]
+if [ `dpkg -l | grep -E 'tcsh|rsync' | wc -l` -ne 2 ]
 then
-	echo "Installation des dépendances (tcsh, rsync, lsb-release) ..."
+	echo "Installation des dépendances (tcsh, rsync) ..."
 	echo ""
-	apt-get install tcsh rsync lsb-release
+	apt-get install tcsh rsync
 	touch ~/.tcshrc
 	export NB_TCSHRC=0
 else
