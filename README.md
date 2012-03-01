@@ -25,14 +25,45 @@ Il vous faut renseigner le _gw.conf_ selon la syntaxe suivante :
 	
 	toto=\(^apache\|^mysql\)
 
+Il vous faut également renseigner les mots de passe (et les ports ...) des services mysql et postgres au besoin dans les variables au début du _gw.sh_
+
 Le fichier installgw.sh va installer les dépendances (le tcsh, donc mais aussi rsync)
 
 A chaque mise à jour du script lui-même ou de sa configuration (_gw.conf_), *relancer installgw.sh*
 
 ## Utilisation
-Pour un premier coup d'oeil rapide : Lancer gw sans argument et vous obtiendrez la liste des services disponibles sur la machine
+Pour un premier coup d'oeil rapide : Lancer gw sans argument et vous obtiendrez la liste des services disponibles sur la machine :
 
-Pour utiliser une commande de gw, taper simplement _gw maCommande_
+Ici une machine Postgres :
+
+	Commandes de gestion des serveurs
+	---------------------------------
+
+	Toutes machines
+	---------------
+	aide                      Comment utiliser GW ?
+	annexes                   Liste complete des commandes
+	ps                        Lister tous les processus qui sont actifs sur la machine
+
+	Spécifique <nomdemachine>
+	--------------------
+	postgresDumpAll           Dump de toutes les bases postgres
+	postgresDump              <base> Dump de la base postgres
+	postgresListeBases        Liste toutes les bases postgres
+	postgresListeDump         Liste tous les dumps disponibles
+	postgresReload            Recharge la configuration du serveur postgres
+	postgresRestart           Redemarre le serveur postgres
+	postgresRestaure          <base> <dumpSQL.tar.gz> Restaure une base de donnees a partir du fichier dumpSQL au format tar.gz
+	postgresStart             Demarrage du serveur postgres
+	postgresStop              Arreter le serveur postgres
+
+	Conventions de syntaxe
+	----------------------
+	[paramètre] : paramètre optionnel
+	<paramètre> : paramètre obligatoire
+
+
+Pour utiliser une commande de gw, taper simplement _gw maCommande_, exemple _gw postgresListeBases_
 
 ## Notes
 Le contenu présent dans ce dépot est publié sous les termes de la [Licence publique générale GNU v3](http://www.gnu.org/licenses/gpl.txt "Licence publique générale GNU v3")
