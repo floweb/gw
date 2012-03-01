@@ -52,7 +52,7 @@ set DATE=`date '+%y-%m-%d'`
 set DATPASS=`date '+%d%m'`
 set LADATE=`date | awk '{printf("%s%s%02s",$3,$2,$(NF)-2000)}'`
 set LEMOIS=`date|awk '{printf("%s%02s",$2,$(NF)-1900)}'`
-set HEURE=`date '+%T'`
+set HEURE=`date '+%N'`
 
 #
 # Variables de gestion du GW
@@ -71,7 +71,7 @@ set DIREXPORTMYSQL=/var/export-mysql
 set DIRREPLICATEMYSQL=/var/replicate-mysql
 set MYSQLDIR=/etc/init.d/mysql
 set MYSQLBIN=/usr/bin
-set MYSQLPASSWD=admVIRTU64
+set MYSQLPASSWD=motdepasse
 set PORT=3307
 set SERVEURMYSQL=localhost
 
@@ -81,7 +81,7 @@ set SERVEURMYSQL=localhost
 set POSTGRESDIR=/etc/init.d/postgresql
 set DIRBASEPGSQL=/data/postgres
 set DIREXPORTPGSQL=/var/export-postgres
-set PGSQLPASSWD=admVIRTU64
+set PGSQLPASSWD=motdepasse
 
 #
 # Variables de gestion des serveurs Apache
@@ -504,7 +504,7 @@ case postgresListeBases:       Liste toutes les bases postgres
 	echo "Liste de toutes les bases de postgres"
 
     # Recuperation de toutes les bases de postgres
-    su - postgres -c "/usr/bin/psql -l" > /tmp/listeBases
+    su - postgres -c "psql -l" > /tmp/listeBases
     cat /tmp/listeBases | tail -n +4 | grep -v \( | grep \| |awk -F ' ' '{print $1}'
 breaksw
 
@@ -517,7 +517,7 @@ case postgresDumpAll:          Dump de toutes les bases postgres
 
     echo "Dumps de toutes les bases de postgresql"
     # Recuperation de toutes les bases de postgresql
-    su - postgres -c "/usr/bin/psql -l" > /tmp/listeBases
+    su - postgres -c "psql -l" > /tmp/listeBases
     set BASES=`cat /tmp/listeBases | tail -n +4 | grep -v \( | grep \| |awk -F ' ' '{print $1}'`
     # On parcours l'ensemble des bases et on fait le dump
     foreach BASE ($BASES)
@@ -544,7 +544,7 @@ case postgresDump:             <base> Dump de la base postgres
         chown -R postgres $DIREXPORTPGSQL/$2
         set BACKUP="$DIREXPORTPGSQL/$2/$2.$DATE.$HEURE.backup"
         echo "Dump de la base $2 en $BACKUP"
-        su - postgres -c "/usr/bin/pg_dump -i -F c -b -f $BACKUP $2"
+        su - postgres -c "pg_dump -i -F c -b -f $BACKUP $2"
         echo "compression du dump"
         cd $DIREXPORTPGSQL/$2/
         tar cfvz $2.$DATE.$HEURE.backup.tar.gz $2.$DATE.$HEURE.backup
