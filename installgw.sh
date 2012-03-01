@@ -10,13 +10,16 @@
 export DESTCONFGW="/etc/gw.conf"
 export DESTGWBIN="/usr/local/bin/gw"
 
+# Création au besoin des .shellrc
+touch ~/.tcshrc
+touch ~/.bashrc
+
 # Install des dépendances si besoin
 if [ `dpkg -l | grep -E 'tcsh|rsync' | wc -l` -ne 2 ]
 then
 	echo "Installation des dépendances (tcsh, rsync) ..."
 	echo ""
 	apt-get install tcsh rsync
-	touch ~/.tcshrc
 	export NB_TCSHRC=0
 else
 	export NB_TCSHRC=`cat ~/.tcshrc | grep "alias gw 'tcsh "$DESTGWBIN"'" | wc -l`
