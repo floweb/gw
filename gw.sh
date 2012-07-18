@@ -33,7 +33,7 @@ endsw
 
 set OSNAME=`uname -a`
 set PLATEFORME=`uname -i`
-set IP=`ifconfig | grep "inet " | awk '{print $2}' | awk -F : '{print $2}' | grep -v 127`
+set IP=`/sbin/ifconfig | grep "inet " | awk '{print $2}' | awk -F : '{print $2}' | grep -v 127`
 set USERID=`id -g`
 set USER=`/usr/bin/whoami`
 
@@ -47,12 +47,14 @@ set MKPASSWD=/usr/local/bin/mkpasswd
 #
 # Variables de gestion du temps
 #
+
+set HEUREDUMP=`date '+%H-%M-%S'`
 set DATETIME=`date '+%d/%m/%y %H:%M:%S'`
 set DATE=`date '+%y-%m-%d'`
 set DATPASS=`date '+%d%m'`
 set LADATE=`date | awk '{printf("%s%s%02s",$3,$2,$(NF)-2000)}'`
 set LEMOIS=`date|awk '{printf("%s%02s",$2,$(NF)-1900)}'`
-set HEURE=`date '+%N'`
+set HEURE=`date '+%T'`
 
 #
 # Variables de gestion du GW
@@ -260,15 +262,15 @@ case mysqlDump:                <base> Dump de la base MySQL
 	if ($2 != "") then
 
 		echo "Lancement du dump de la base $2"
-		/bin/mkdir -p $DIREXPORTMYSQL
-		/bin/chown mysql:mysql $DIREXPORTMYSQL
+		/bin/mkdir -p $DIREXPORTMYSQL/$2
+		/bin/chown -R mysql:mysql $DIREXPORTMYSQL
 
 		# Dump + desactive les logs binaires
-		echo "SET SQL_LOG_BIN=0;" > $DIREXPORTMYSQL/$2.sql.$DATE
-		$MYSQLBIN/mysqldump -h $SERVEURMYSQL --port=$PORT --user=root --password=$MYSQLPASSWD $2 >> $DIREXPORTMYSQL/$2.sql.$DATE
-		gzip -f -9 $DIREXPORTMYSQL/$2.sql.$DATE
+		echo "SET SQL_LOG_BIN=0;" > $DIREXPORTMYSQL/$2/$2.sql.$DATE.$HEUREDUMP
+		$MYSQLBIN/mysqldump -h $SERVEURMYSQL --port=$PORT --user=root --password=$MYSQLPASSWD $2 >> $DIREXPORTMYSQL/$2/$2.sql.$DATE.$HEUREDUMP
+		gzip -f -9 $DIREXPORTMYSQL/$2/$2.sql.$DATE.$HEUREDUMP
 		echo "Dump de la base $2 ok, le fichier est disponible ici :"
-		echo $DIREXPORTMYSQL/$2.sql.$DATE.gz
+		echo $DIREXPORTMYSQL/$2/$2.sql.$DATE.$HEUREDUMP.gz
 
 	else
         	# Si il n'y a pas de parametre, on dump toutes les bases que l'on trouve
@@ -504,8 +506,10 @@ case postgresListeBases:       Liste toutes les bases postgres
 	echo "Liste de toutes les bases de postgres"
 
     # Recuperation de toutes les bases de postgres
-    su - postgres -c "psql -l" > /tmp/listeBases
-    cat /tmp/listeBases | tail -n +4 | grep -v \( | grep \| |awk -F ' ' '{print $1}'
+    su - postgres -c "/usr/bin/psql -l" > /tmp/listeBases
+    #essai : cat /tmp/listeBases | tail -n +4 | awk -F ' ' '{print $1}' | grep -E '^[a-zA-Z]'
+    cat /tmp/listeBases | awk '{ print $1}' | grep -E '^[a-z]' | grep -vE '^-|^List|^Name|^template'
+    #OLD : cat /tmp/listeBases | tail -n +4 | grep -v \( | grep \| |awk -F ' ' '{print $1}'
 breaksw
 
 
@@ -517,8 +521,10 @@ case postgresDumpAll:          Dump de toutes les bases postgres
 
     echo "Dumps de toutes les bases de postgresql"
     # Recuperation de toutes les bases de postgresql
-    su - postgres -c "psql -l" > /tmp/listeBases
-    set BASES=`cat /tmp/listeBases | tail -n +4 | grep -v \( | grep \| |awk -F ' ' '{print $1}'`
+    su - postgres -c "/usr/bin/psql -l" > /tmp/listeBases
+    #essai : set BASES=`cat /tmp/listeBases | tail -n +4 | awk -F ' ' '{print $1}' | grep -E '^[a-zA-Z]'`
+    #OLD : set BASES=`cat /tmp/listeBases | tail -n +4 | grep -v \( | grep \| |awk -F ' ' '{print $1}'`
+    set BASES=`cat /tmp/listeBases | awk '{ print $1}' | grep -E '^[a-z]' | grep -vE '^-|^List|^Name|^template'`
     # On parcours l'ensemble des bases et on fait le dump
     foreach BASE ($BASES)
         $GWBIN postgresDump $BASE
@@ -540,15 +546,16 @@ case postgresDump:             <base> Dump de la base postgres
                 echo ""
                 exit 1
         endif
+
         mkdir -p $DIREXPORTPGSQL/$2
         chown -R postgres $DIREXPORTPGSQL/$2
-        set BACKUP="$DIREXPORTPGSQL/$2/$2.$DATE.$HEURE.backup"
+        set BACKUP="$DIREXPORTPGSQL/$2/$2.$DATE.$HEUREDUMP.backup"
         echo "Dump de la base $2 en $BACKUP"
-        su - postgres -c "pg_dump -i -F c -b -f $BACKUP $2"
+        su - postgres -c "/usr/bin/pg_dump -i -F c -b -f $BACKUP $2"
         echo "compression du dump"
         cd $DIREXPORTPGSQL/$2/
-        tar cfvz $2.$DATE.$HEURE.backup.tar.gz $2.$DATE.$HEURE.backup
-        rm -f $2.$DATE.$HEURE.backup
+        tar cfvz $2.$DATE.$HEUREDUMP.backup.tar.gz $2.$DATE.$HEUREDUMP.backup
+        rm -f $2.$DATE.$HEUREDUMP.backup
 breaksw
 
 
