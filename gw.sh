@@ -600,7 +600,7 @@ case postgresRestaure:         <base> <dumpSQL.tar.gz> Restaure une base de donn
             echo "Fin de la restauration"
             echo ""
             echo "nettoyage fichier tmp"
-            /bin/rm /tmp/ backup.tar
+            /bin/rm /tmp/backup.tar
             /bin/rm $DUMP
 			echo ""
         else
