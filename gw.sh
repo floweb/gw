@@ -864,7 +864,7 @@ case ps:                       Lister tous les processus qui sont actifs sur la 
 		set NB=`ps -ef | grep tomcat | grep -v grep | wc -l`
 		if ($NB != 0) then
 			echo "Processus Tomcat"
-			echo "---------------"
+			echo "----------------"
 			ps -ef | grep tomcat | grep -v grep
 			echo
 		endif
@@ -882,7 +882,7 @@ case ps:                       Lister tous les processus qui sont actifs sur la 
 		set NB=`ps awux | grep postgres | grep -v grep | wc -l`
 		if ($NB != 0) then
 			echo "Processus Postgres"
-			echo "---------------"
+			echo "------------------"
 			ps awux | grep postgres | grep -v grep
 			echo
 		endif
@@ -895,6 +895,16 @@ case ps:                       Lister tous les processus qui sont actifs sur la 
 			ps -ef | grep vsftpd | grep -v grep
 			echo
 		endif
+
+		# On liste les processus de serveurs d'impression
+		set NB=`ps -ef | grep PrintManager | grep -v grep | wc -l`
+		if ($NB != 0) then
+			echo "Processus Serveur d'impression"
+			echo "------------------------------"
+			ps -ef | grep PrintManager | grep -v grep
+			echo
+		endif
+
 	# On veut tester un pattern particulier
 	else
 		echo
@@ -915,7 +925,50 @@ breaksw
 #   Demarrer des serveurs d'impression de contextes   #
 #-----------------------------------------------------#
 
-case printStart:               Demarrer les serveurs d impression des contextes demandes
+case serveurImpressionListe:	  Affiche la liste des serveur d'impression disponibles
+
+	#------------------------------------
+	#Usage non conforme ou demande d'aide
+	if ( $2 == "-h" || $2 == "-help" || $2 == "--h" || $2 == "--help" ) then
+        	#Message d'information sur l'usage du script
+	        echo ""
+        	echo "Usage :  gw serveurImpressionListe [-h] [-help] [--h] [--help] "
+	        echo ""
+        	echo "  gw serveurImpressionListe	affiche la liste des serveurs d'impression disponibles"
+	        echo ""
+        	echo "  -h, -help, --h, --help		affiche ce message"
+		exit 1
+	else
+		if ( $2 != "" ) then
+			echo ""
+			echo "Erreur : argument invalide"
+		        echo ""
+		        echo "Usage :  gw serveurImpressionListe [-h] [-help] [--h] [--help] "
+	        	exit 1
+		endif
+	endif
+	
+	#------------------------------------------------------
+	#Enregistre la liste de tous les contextes d'impression
+	cd /opt/serveurImpression/
+        set LISTE=`ls -d */|cut -d"/" -f1`
+	
+	#---------------------
+	#Listage des contextes
+	foreach CONTEXTE ($LISTE)
+		#Le processus du contexte est-il actif ?
+                if ( -f "/opt/serveurImpression/$CONTEXTE/start_impression.sh" ) then
+			#Oui, on l'affiche
+			echo "$CONTEXTE"
+		endif
+	end
+breaksw
+
+#-----------------------------------------------------#
+#   Demarrer des serveurs d'impression de contextes   #
+#-----------------------------------------------------#
+
+case serveurImpressionStart:	  Demarrer les serveurs d impression des contextes demandes
 
 	#----------------------
 	#Decalage des arguments
@@ -934,7 +987,7 @@ case printStart:               Demarrer les serveurs d impression des contextes 
 	if ( "$1" == "" || "$1" == "-h" || "$1" == "-help" || "$1" == "--h" || "$1" == "--help" ) then
         #Message d'information sur l'usage du script
         echo ""
-        echo "Usage :  gw printstart [-h] [-help] [--h] [--help] [all] [contexte1 ...]"
+        echo "Usage :  gw serveurImpressionstart [-h] [-help] [--h] [--help] [all] [contexte1 ...]"
         echo ""
         echo "  -h, -help, --h, --help  affiche ce message"
         echo ""
@@ -958,7 +1011,7 @@ case printStart:               Demarrer les serveurs d impression des contextes 
 	#Traitement des contextes
 	foreach CONTEXTE ($ARG)
         #Le processus du contexte est-il deja en cours d'execution ?
-        if ( `echo "$PROCESS" | grep $CONTEXTE | grep -v grep | grep -v "gw printstart"` == "" ) then
+        if ( `echo "$PROCESS" | grep $CONTEXTE | grep -v grep | grep -v "gw serveurImpressionStart"` == "" ) then
                 #Non, on le lance
                 if ( -f "/opt/serveurImpression/$CONTEXTE/start_impression.sh" ) then
                         cd /opt/serveurImpression/$CONTEXTE/
@@ -972,13 +1025,16 @@ case printStart:               Demarrer les serveurs d impression des contextes 
         endif
         sleep 1
         #Le processus est-il correctement execute ?
-        if (( `ps awwxx | grep PrintManager | grep $CONTEXTE | grep -v grep | grep -v "gw printstart"` != "" )) then
+        if (( `ps awwxx | grep PrintManager | grep $CONTEXTE | grep -v grep | grep -v "gw serveurImpressionStart"` != "" )) then
                 #Oui, on valide le lancement
                 echo "Processus $CONTEXTE correctement lance"
         else
-                #Non, message d'avertissement
-                echo "Erreur de lancement du serveur d'impression ou pas de serveur pour le contexte $CONTEXTE."
-                set EXITCODE=`expr $EXITCODE + 1`
+		#Non, le contexte existe-t-il ?
+                if ( -f "/opt/serveurImpression/$CONTEXTE/start_impression.sh" ) then
+                	#Non, message d'avertissement car pas de lancement
+	                echo "Erreur de lancement du serveur d'impression $CONTEXTE."
+	                set EXITCODE=`expr $EXITCODE + 1`
+		endif
         endif
 	end
 	exit $EXITCODE
@@ -986,10 +1042,10 @@ case printStart:               Demarrer les serveurs d impression des contextes 
 breaksw
 
 #-----------------------------------------------------#
-#   Arrêter des serveurs d'impression de contextes    #
+#   Arreter des serveurs d'impression de contextes    #
 #-----------------------------------------------------#
 
-case printStop:               Arreter les processus des serveurs d impression des contextes demandes
+case serveurImpressionStop:	  Arreter les processus des serveurs d impression des contextes demandes
 
 	#Decalage des arguments
 	shift
@@ -999,7 +1055,7 @@ case printStop:               Arreter les processus des serveurs d impression de
 	set EXITCODE=0
 	#------------------------------------------------
 	#Recherche des processus d'impression deja lances
-	set PROCESS=`ps awwxx | grep PrintManager | grep -v grep | grep -v "gw printstop"`
+	set PROCESS=`ps awwxx | grep PrintManager | grep -v grep | grep -v "gw serveurImpressionStop"`
 
 	#--------------------------------------
 	#Conversion des arguments en minuscules
@@ -1010,7 +1066,7 @@ case printStop:               Arreter les processus des serveurs d impression de
 	if ( $1 == "" || $1 == "-h" || $1 == "-help" || $1 == "--h" || $1 == "--help" ) then
 		#Message d'information sur l'usage du script
 	        echo ""
-        	echo "Usage : gw printstop [-h] [-help] [--h] [--help] [all] [contexte1 ...]"
+        	echo "Usage : gw serveurImpressionStop [-h] [-help] [--h] [--help] [all] [contexte1 ...]"
 	        echo ""
 	        echo "  -h, -help, --h, --help  affiche ce message"
 	        echo ""
@@ -1044,7 +1100,7 @@ case printStop:               Arreter les processus des serveurs d impression de
 		#Le contexte saisi est-il valide ?
         if ( -f "/opt/serveurImpression/$CONTEXTE/start_impression.sh" ) then
 			#Oui, est-il en cours d'execution ?
-            if ( `echo "$PROCESS" | grep $CONTEXTE | grep -v grep | grep -v "gw printstop"` != "") then
+            if ( `echo "$PROCESS" | grep $CONTEXTE | grep -v grep | grep -v "gw serveurImpressionStop"` != "") then
 				#Oui, arret du process
 				kill -9 `echo "$PROCESS"| grep $CONTEXTE | awk -F' ' '{print $1}'`
         	else
@@ -1060,7 +1116,7 @@ case printStop:               Arreter les processus des serveurs d impression de
 				endif
 			endif
 			#Le processus est-il correctement stoppe ?
-		    if ( `ps awwxx | grep PrintManager | grep $CONTEXTE | grep -v grep | grep -v "gw printstop"` == "" ) then
+		    if ( `ps awwxx | grep PrintManager | grep $CONTEXTE | grep -v grep | grep -v "gw serveurImpressionStop"` == "" ) then
 				#Oui, on valide l'arret
 				echo "Processus $CONTEXTE correctement arrete"
 		    else
@@ -1068,7 +1124,7 @@ case printStop:               Arreter les processus des serveurs d impression de
 				echo "Erreur d'arret du processus du serveur d'impression $CONTEXTE. Veuillez relancer le script"
 				set EXITCODE=`expr $EXITCODE + 1`
 		    endif
-		else
+        else
 			if ( "$ARGALL" == "1" ) then
 				#Non, cas de l'argument "all" : les contextes en erreur sont ignores
 				continue
@@ -1281,8 +1337,8 @@ endsw
 #From: <$WEBMASTER>
 #To: localhost@localhost.fr
 #Subject: Info redémarrage application SI : $2
-#
+
 #Bonjour, l'application $2 vient d'etre relancee.
 #Voici le log d'erreur :
-#
+
 #FINMAIL
