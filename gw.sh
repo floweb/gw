@@ -12,7 +12,7 @@
 # !!! TODO !!!
 # Mettre un usage pour chaque mauvaise utilisation (mieux que "Attention, il manque un parametre")
 
-# Infos systÃ¨me
+# Infos système
 
 set HOSTNAME=`hostname | awk -F'.' '{print $1}'`
 set OS=`cat /etc/issue | cut --delimiter='\' -f 1`
@@ -139,7 +139,7 @@ switch ($COM)
 
 case apacheStart:              Demarre un serveur apache
 
-	# on dÃ©marre apache2
+	# on démarre apache2
 	$WEBDIR start
 	# Message d'information
 	sleep 1
@@ -158,7 +158,7 @@ case apacheStart:              Demarre un serveur apache
 	tail -6 $WEBLOGDIR/error.log
 
 	echo
-	echo "Le serveur Apache est dÃ©marrÃ©"
+	echo "Le serveur Apache est démarré"
 	echo
 breaksw
 
@@ -189,7 +189,7 @@ case apacheStop:               Arrete un serveur apache
 	tail -6 $WEBLOGDIR/error.log
 
 	echo
-	echo "Le serveur Apache est arrÃªtÃ©"
+	echo "Le serveur Apache est arrêté"
 	echo
 breaksw
 
@@ -220,12 +220,12 @@ case apacheReload:             Recharge la configuration du serveur apache
 	tail -6 $WEBLOGDIR/error.log
 
 	echo
-	echo "La configuration du serveur Apache est rechargÃ©e"
+	echo "La configuration du serveur Apache est rechargée"
 	echo
 breaksw
 
 #-------------------------------------#
-#   RedÃ©marrage d'un serveur Apache   #
+#   Redémarrage d'un serveur Apache   #
 #-------------------------------------#
 
 case apacheRestart:            Redemarre un serveur apache
@@ -299,13 +299,13 @@ breaksw
 
 
 #----------------------------------#
-#   RedÃ©marrage du serveur MySQL   #
+#   Redémarrage du serveur MySQL   #
 #----------------------------------#
 
 case mysqlRestart:	          Redemarre le serveur MySQL
 
 	echo
-	echo "RedÃ©marrage de MySQL"
+	echo "Redémarrage de MySQL"
 	echo "--------------------"
 	echo
 	$GWBIN mysqlStop
@@ -319,7 +319,7 @@ breaksw
 
 case mysqlStart:	          Demarrage du serveur MySQL
 
-	echo "DÃ©marrage de MySQL :"
+	echo "Démarrage de MySQL :"
 	$MYSQLDIR start
 	$GWBIN mysqlRepair
 breaksw
@@ -343,7 +343,7 @@ breaksw
 
 case mysqlStop:		  Arreter le serveur MySQL
 
-	echo "ArrÃªt de MySQL :"
+	echo "Arrêt de MySQL :"
 	$MYSQLDIR stop
 breaksw
 
@@ -362,10 +362,10 @@ case mysqlCopie:               <basSource> <baseCible> Copie d une base vers une
 
 	echo "Dump de la base source : $2"
 	$MYSQLBIN/mysqldump --port=$PORT --user=root --password=$MYSQLPASSWD $2 >$DIREXPORTMYSQL.sql
-	echo "DÃ©but de la copie"
+	echo "Début de la copie"
 	echo "Suppression de la base cible : $3"
 	$MYSQLBIN/mysql -h $SERVEURMYSQL --port=$PORT -u root --password=$MYSQLPASSWD --exec="DROP DATABASE $3;"
-	echo "CrÃ©ation de la base cible : $3"
+	echo "Création de la base cible : $3"
 	$MYSQLBIN/mysql -h $SERVEURMYSQL --port=$PORT -u root --password=$MYSQLPASSWD --exec="CREATE DATABASE $3;"
 	echo "Envoie des donnees de $COM2 vers $COM3"
 	$MYSQLBIN/mysql -h $SERVEURMYSQL $3 -f --port=$PORT -u root --password=$MYSQLPASSWD --exec="source $DIREXPORTMYSQL.sql"
@@ -374,7 +374,7 @@ breaksw
 
 
 #---------------------------------------------#
-#   Se connecter Ã  une base de donnees MySQL  #
+#   Se connecter à une base de donnees MySQL  #
 #---------------------------------------------#
 
 case mysqlConnect:             <nom-serveur> Se connecter a un serveur mysql en root
@@ -392,7 +392,7 @@ breaksw
 
 
 #--------------------------------------------------------------------------#
-#   Changer le mot de passeÂ d'un utilisateur d'une base de donnees MySQL   #
+#   Changer le mot de passe d'un utilisateur d'une base de donnees MySQL   #
 #--------------------------------------------------------------------------#
 
 case mysqlPassword:            <utilisateur> <mot de passe>  Changer un mot de passe utilisateur de la base de donnees
@@ -478,22 +478,22 @@ breaksw
 
 
 #------------------------------------#
-#   CrÃ©ation d'une base de donnÃ©es   #
+#   Création d'une base de données   #
 #------------------------------------#
 
-case mysqlCreer:	          <base> [dev password] [vis password] CrÃ©e une base de donnÃ©es avec les utilisateurs appropriÃ©s
+case mysqlCreer:	          <base> [dev password] [vis password] Crée une base de données avec les utilisateurs appropriés
 
-	# Si il n'y a pas de paramÃ¨tre
+	# Si il n'y a pas de paramètre
 	if ($2 == "") then
 		echo "Attention, il manque le nom de la base"
 		exit 1
 	endif
 
-	# On crÃ©e la base de donnÃ©e
+	# On crée la base de donnée
 	echo "Creation de la base de donnees $2 :"
 	$MYSQLBIN/mysql -h $SERVEURMYSQL --port=$PORT -u root --password=$MYSQLPASSWD --exec="CREATE DATABASE $2;"
 
-	echo "Fin de la crÃ©ation de la base de donnees"
+	echo "Fin de la création de la base de donnees"
 breaksw
 
 
@@ -622,13 +622,13 @@ breaksw
 
 
 #-------------------------------------#
-#   RedÃ©marrage du serveur postgres   #
+#   Redémarrage du serveur postgres   #
 #-------------------------------------#
 
 case postgresRestart:	  Redemarre le serveur postgres
 
 	echo
-	echo "RedÃ©marrage de postgres"
+	echo "Redémarrage de postgres"
 	echo "-----------------------"
 	echo
 	$GWBIN postgresStop
@@ -642,7 +642,7 @@ breaksw
 
 case postgresStart:	          Demarrage du serveur postgres
 
-	echo "DÃ©marrage de postgres :"
+	echo "Démarrage de postgres :"
 	$POSTGRESDIR start
 breaksw
 
@@ -653,7 +653,7 @@ breaksw
 
 case postgresStop:		  Arreter le serveur postgres
 
-	echo "ArrÃªt de postgres :"
+	echo "Arrêt de postgres :"
 	$POSTGRESDIR stop
 breaksw
 
@@ -685,7 +685,7 @@ case ftpStart:                 Demarrer le serveur FTP
 	tail -6 $FTPLOGDIR
 
 	echo
-	echo "Le serveur vsftpd est dÃ©marrÃ©"
+	echo "Le serveur vsftpd est démarré"
 	echo
 breaksw
 
@@ -717,13 +717,13 @@ case ftpStop                   Arrete le serveur FTP
 	tail -6 $FTPLOGDIR
 
 	echo
-	echo "Le serveur vsftpd est arrÃªtÃ©"
+	echo "Le serveur vsftpd est arrêté"
 	echo
 breaksw
 
 
 #----------------------------------#
-#   RedÃ©marrage d'un serveur FTP   #
+#   Redémarrage d'un serveur FTP   #
 #----------------------------------#
 
 case ftpRestart:               Redemarrer le serveur FTP
@@ -762,7 +762,7 @@ case ftpReload:                Recharge la configuration du serveur FTP
 	tail -6 $FTPLOGDIR
 
 	echo
-	echo "La configuration du serveur vsftpd est rechargÃ©e"
+	echo "La configuration du serveur vsftpd est rechargée"
 	echo
 breaksw
 
@@ -773,21 +773,21 @@ breaksw
 case ftpInfo:                  Affiche des information sur le serveur FTP
 
 	echo "Voulez-vous afficher quelques stats sur le serveur ftp ?"
-	echo "Appuyez sur 'Ctrl+C' pour sortir de cet Ã©cran"
+	echo "Appuyez sur 'Ctrl+C' pour sortir de cet écran"
 	echo
 	echo "Validez en tapant oui :"
 	set VALIDSTAT=$<
 	if ($VALIDSTAT == "oui") then
 		watch ps -C vsftpd -o user,pid,stime,cmd
 	else
-		echo "EntrÃ©e non Ã©gale Ã  oui, on arrÃªte"
+		echo "Entrée non égale à oui, on arrête"
 		exit 1
 	endif
 breaksw
 
 
 #--------------------------------#
-#   CrÃ©ation d'utilisateur FTP   #
+#   Création d'utilisateur FTP   #
 #--------------------------------#
 
 case ftpCreer:                 Creer un utilisateur FTP
@@ -833,11 +833,11 @@ case ftpCreer:                 Creer un utilisateur FTP
 		#echo $CHEM >> /home/toto/test.sh
 	#endif
 
-	# Mise Ã  jour de la base de donnÃ©es des utilisateurs
+	# Mise à jour de la base de données des utilisateurs
 	db4.6_load -T -t hash -f $FTPUSERDBDIR/login.txt $FTPUSERDBDIR/login.db
 	chmod 600 $FTPUSERDBDIR/login.*
 
-	echo "Utilisateur "$USERFTP" crÃ©Ã©."
+	echo "Utilisateur "$USERFTP" créé."
 breaksw
 
 
@@ -911,11 +911,182 @@ case ps:                       Lister tous les processus qui sont actifs sur la 
 
 breaksw
 
+#-----------------------------------------------------#
+#   Demarrer des serveurs d'impression de contextes   #
+#-----------------------------------------------------#
+
+case printStart:               Demarrer les serveurs d impression des contextes demandes
+
+	#----------------------
+	#Decalage des arguments
+	shift
+	
+	#-----------------------
+	#Code d'erreur de sortie
+	set EXITCODE=0
+	#Recherche des processus d'impression deja lances
+	set PROCESS=`ps awwxx | grep PrintManager | grep -v grep`
+	#Conversion des arguments en minuscules
+	set ARG=`echo $* | tr '[:upper:]' '[:lower:]'`
+	
+	#------------------------------------
+	#Usage non conforme ou demande d'aide
+	if ( "$1" == "" || "$1" == "-h" || "$1" == "-help" || "$1" == "--h" || "$1" == "--help" ) then
+        #Message d'information sur l'usage du script
+        echo ""
+        echo "Usage :  gw printstart [-h] [-help] [--h] [--help] [all] [contexte1 ...]"
+        echo ""
+        echo "  -h, -help, --h, --help  affiche ce message"
+        echo ""
+        echo "  all                     demarre les serveurs d'impression de tous les"
+        echo "                          contextes"
+        echo ""
+        echo "  contexte1 ...           demarre les serveurs d'impression des contextes"
+        echo "                          rentres en parametres"
+        exit 1
+	endif
+	
+	#-----------------------------------------------------------
+	#Detection de la presence de la presence de l'argument "all"
+	if ( "$ARG" == "all" ) then
+        #Oui, remplacement automatique des arguments du script par tous les contextes
+        cd /opt/serveurImpression/
+        set ARG=`ls -d */|cut -d"/" -f1`
+	endif
+	
+	#------------------------
+	#Traitement des contextes
+	foreach CONTEXTE ($ARG)
+        #Le processus du contexte est-il deja en cours d'execution ?
+        if ( `echo "$PROCESS" | grep $CONTEXTE | grep -v grep | grep -v "gw printstart"` == "" ) then
+                #Non, on le lance
+                if ( -f "/opt/serveurImpression/$CONTEXTE/start_impression.sh" ) then
+                        cd /opt/serveurImpression/$CONTEXTE/
+                       (./start_impression.sh > /var/log/serveurImpression/$CONTEXTE.log) >& /var/log/serveurImpression/$CONTEXTE.out &
+                endif
+        else
+                #Oui, message d'avertissement
+                echo "Serveur d'impression du contexte $CONTEXTE deja lance"
+                set EXITCODE=`expr $EXITCODE + 1`
+                continue
+        endif
+        sleep 1
+        #Le processus est-il correctement execute ?
+        if (( `ps awwxx | grep PrintManager | grep $CONTEXTE | grep -v grep | grep -v "gw printstart"` != "" )) then
+                #Oui, on valide le lancement
+                echo "Processus $CONTEXTE correctement lance"
+        else
+                #Non, message d'avertissement
+                echo "Erreur de lancement du serveur d'impression ou pas de serveur pour le contexte $CONTEXTE."
+                set EXITCODE=`expr $EXITCODE + 1`
+        endif
+	end
+	exit $EXITCODE
+
+breaksw
+
+#-----------------------------------------------------#
+#   Arrêter des serveurs d'impression de contextes    #
+#-----------------------------------------------------#
+
+case printStop:               Arreter les processus des serveurs d impression des contextes demandes
+
+	#Decalage des arguments
+	shift
+	
+	#-----------------------
+	#Code d'erreur de sortie
+	set EXITCODE=0
+	#------------------------------------------------
+	#Recherche des processus d'impression deja lances
+	set PROCESS=`ps awwxx | grep PrintManager | grep -v grep | grep -v "gw printstop"`
+
+	#--------------------------------------
+	#Conversion des arguments en minuscules
+	set ARG=`echo $* | tr '[:upper:]' '[:lower:]'`
+
+	#------------------------------------
+	#Usage non conforme ou demande d'aide
+	if ( $1 == "" || $1 == "-h" || $1 == "-help" || $1 == "--h" || $1 == "--help" ) then
+		#Message d'information sur l'usage du script
+	        echo ""
+        	echo "Usage : gw printstop [-h] [-help] [--h] [--help] [all] [contexte1 ...]"
+	        echo ""
+	        echo "  -h, -help, --h, --help  affiche ce message"
+	        echo ""
+	        echo "  all                     stoppe les serveurs d'impression de tous les"
+	        echo "                          contextes en cours d'execution"
+	        echo ""
+	        echo "  contexte1 ...           stoppe les serveurs d'impression des contextes"
+	        echo "                          rentres en parametres"
+        	exit 1
+	endif
+
+	#--------------------------------------------
+	#Detection de la presence de l'argument "all"
+	if ( "$ARG" == "all" ) then
+		#Oui, remplacement automatique de $ARG par tous les contextes et conservation de la donnee du parametre all
+	        if ( "$PROCESS" == "" ) then
+			echo "Aucun processus a arreter. Fin du script"
+			exit $EXITCODE
+		else
+		        cd /opt/serveurImpression/
+		        set ARG=`ls -d */|cut -d"/" -f1`
+			set ARGALL="1"
+		endif
+	else
+		set ARGALL=""
+	endif
+
+	#------------------------------------------------------------------------------
+	#Terminaison des processus de serveurs d'impression pour les contextes demandes
+	foreach CONTEXTE ($ARG)
+		#Le contexte saisi est-il valide ?
+        if ( -f "/opt/serveurImpression/$CONTEXTE/start_impression.sh" ) then
+			#Oui, est-il en cours d'execution ?
+            if ( `echo "$PROCESS" | grep $CONTEXTE | grep -v grep | grep -v "gw printstop"` != "") then
+				#Oui, arret du process
+				kill -9 `echo "$PROCESS"| grep $CONTEXTE | awk -F' ' '{print $1}'`
+        	else
+				if ( "$ARGALL" == "" ) then
+					#Non, il n'y a rien a stopper alors que le serveur etait specifie
+					echo "Aucun processus d'impression pour le contexte $CONTEXTE actif. Aucune action a effectuer"
+					set EXITCODE=`expr $EXITCODE + 1`
+					continue
+				else
+					#Non mais l'argument all specifiant de rechercher parmi tous les contextes, il est normal
+					#de tomber sur un contexte non lance, donc on ignore l'erreur
+					continue
+				endif
+			endif
+			#Le processus est-il correctement stoppe ?
+		    if ( `ps awwxx | grep PrintManager | grep $CONTEXTE | grep -v grep | grep -v "gw printstop"` == "" ) then
+				#Oui, on valide l'arret
+				echo "Processus $CONTEXTE correctement arrete"
+		    else
+				#Non, message d'avertissement
+				echo "Erreur d'arret du processus du serveur d'impression $CONTEXTE. Veuillez relancer le script"
+				set EXITCODE=`expr $EXITCODE + 1`
+		    endif
+		else
+			if ( "$ARGALL" == "1" ) then
+				#Non, cas de l'argument "all" : les contextes en erreur sont ignores
+				continue
+			else
+				#Non, contexte explicitement specifie : on signale l' erreur
+				echo "Le contexte $CONTEXTE n'existe pas ou il ne dispose pas de serveur d'impression"
+			endif
+		endif
+	end
+	exit $EXITCODE
+
+breaksw
+
 #----------------------------------#
-#   Gestion mÃ©moire - processus    #
+#   Gestion mémoire - processus    #
 #----------------------------------#
 
-case appmem:                      _Affiche l'empreinte mÃ©moire d'un ou plusieurs process
+case appmem:                      _Affiche l'empreinte mémoire d'un ou plusieurs process
 
 	if ($2 == "") then
 		echo "Attention, il manque un parametre"
@@ -945,15 +1116,15 @@ case appmem:                      _Affiche l'empreinte mÃ©moire d'un ou plusieur
 			@ TOTAL_PID = ($RAM_MEM + $SWAP_MEM) / $COUNT_PID
 
 			echo ""
-			echo "----- Rapport d'utilisation mÃ©moire de $2 -----"
+			echo "----- Rapport d'utilisation mémoire de $2 -----"
 			echo ""
 			echo "Nombre de processus : $COUNT_PID"
-			echo "Taille swap utilisÃ© ~= $SWAP_MEM Mo"
-			echo "Taille RAM utilisÃ©e ~= $RAM_MEM Mo"
+			echo "Taille swap utilisé ~= $SWAP_MEM Mo"
+			echo "Taille RAM utilisée ~= $RAM_MEM Mo"
 			echo "Total RAM + Swap / processus ~= $TOTAL_PID Mo"
 			echo ""
 		else
-			echo "Aucun processus ne correspond Ã  $2"
+			echo "Aucun processus ne correspond à $2"
 			exit 1
 		endif
 	endif
@@ -965,11 +1136,11 @@ breaksw
 #   Affichage des infos sur la machine en cours  #
 #------------------------------------------------#
 
-case systeme:                     _Infos complÃ¨tes sur le systÃ¨me
+case systeme:                     _Infos complètes sur le système
 
 	if ($USER == "root") then
 		echo ""
-		echo "Configuration systÃ¨me"
+		echo "Configuration système"
 		echo "====================="
 
 		if ($PLATEFORME == "i386") then
@@ -977,24 +1148,24 @@ case systeme:                     _Infos complÃ¨tes sur le systÃ¨me
 		else if ($PLATEFORME == "x86_64") then
 			set PLATEFORME="64bit"
 		else if ($PLATEFORME == "unknown") then
-			set PLATEFORME="unknown (peut-Ãªtre une machine virtuelle ?)"
+			set PLATEFORME="unknown (peut-être une machine virtuelle ?)"
 		endif
 
 		# Infos
-		set RAMTOTAL=`vmstat -s -S M | grep 'total memory' | sed 's/total memory/mÃ©moire totale/' | sed 's/M/Mo/'`
-		set RAMUTILISE=`vmstat -s -S M | grep 'used memory' | sed 's/used memory/mÃ©moire utilisÃ©e/' | sed 's/M/Mo/'`
+		set RAMTOTAL=`vmstat -s -S M | grep 'total memory' | sed 's/total memory/mémoire totale/' | sed 's/M/Mo/'`
+		set RAMUTILISE=`vmstat -s -S M | grep 'used memory' | sed 's/used memory/mémoire utilisée/' | sed 's/M/Mo/'`
 		set SWAPTOTAL=`vmstat -s -S M | grep 'total swap' | sed 's/total swap/swap total/' | sed 's/M/Mo/'`
-		set SWAPUTILISE=`vmstat -s -S M | grep 'used swap' | sed 's/used swap/swap utilisÃ©/' | sed 's/M/Mo/'`
+		set SWAPUTILISE=`vmstat -s -S M | grep 'used swap' | sed 's/used swap/swap utilisé/' | sed 's/M/Mo/'`
 		set NBCPU=`cat /proc/cpuinfo | grep processor | wc -l`
 		set CPU=`cat /proc/cpuinfo | grep 'model name' | sed -e 's/:/\n/g' | grep -v model | head -1`
-		# TODO : Disque(s) dur modÃ¨le, SMART, etc par ex. ?
+		# TODO : Disque(s) dur modèle, SMART, etc par ex. ?
 
 		echo ""
 		echo "Nom de machine : $HOSTNAME"
 		echo "Nom de l'OS : $OS"
 		echo "Description de l'OS : $OSNAME"
-		echo "Platforme matÃ©rielle : $PLATEFORME"
-		echo "Date & Heure systÃ¨me : $DATETIME"
+		echo "Platforme matérielle : $PLATEFORME"
+		echo "Date & Heure système : $DATETIME"
 		echo "Addresse(s) IP : $IP"
 		echo "CPU(s) : $NBCPU $CPU"
 		echo "Infos disque :"
@@ -1057,8 +1228,8 @@ case annexes:                  Liste complete des commandes
 	echo
 	echo "Conventions de syntaxe"
 	echo "----------------------"
-	echo "[paramÃ¨tre] : paramÃ¨tre optionnel"
-	echo "<paramÃ¨tre> : paramÃ¨tre obligatoire"
+	echo "[paramètre] : paramètre optionnel"
+	echo "<paramètre> : paramètre obligatoire"
 	echo
 	echo "Commandes annexes"
 	echo "-----------------"
@@ -1086,20 +1257,20 @@ case default:
 	echo "---------------"
 	cat $0 | grep -E "^case " | grep -v "_" | sed -e "s/case //" | sed -e "s/:/ /" | grep -v "default" | sort | grep $CONFTOUS
 	echo
-	echo "SpÃ©cifique $HOSTNAME"
+	echo "Spécifique $HOSTNAME"
 	echo "--------------------"
 	cat $0 | grep -E "^case " | grep -v "_" | sed -e "s/case //" | sed -e "s/:/ /" | grep -v "default" | sort | grep $CONFMACHINE
 	echo
 	echo "Conventions de syntaxe"
 	echo "----------------------"
-	echo "[paramÃ¨tre] : paramÃ¨tre optionnel"
-	echo "<paramÃ¨tre> : paramÃ¨tre obligatoire"
+	echo "[paramètre] : paramètre optionnel"
+	echo "<paramètre> : paramètre obligatoire"
 	echo
 breaksw
 endsw
 
 #-----------------------#
-# ConservÃ© pour info	#
+# Conservé pour info	#
 #-----------------------#
 
 # Construction d'un mail
@@ -1109,9 +1280,9 @@ endsw
 #Content-transfer-encoding: 8bit
 #From: <$WEBMASTER>
 #To: localhost@localhost.fr
-#Subject: Info redÃ©marrage application SI : $2
-
+#Subject: Info redémarrage application SI : $2
+#
 #Bonjour, l'application $2 vient d'etre relancee.
 #Voici le log d'erreur :
-
+#
 #FINMAIL
