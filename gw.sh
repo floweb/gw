@@ -279,16 +279,14 @@ case mysqlDump:                <base> Dump de la base MySQL
 		echo $DIREXPORTMYSQL/$2/$2.sql.$DATE.$HEUREDUMP.gz
 
 	else
-        	# Si il n'y a pas de parametre, on dump toutes les bases que l'on trouve
-		set BASES=`ls -F $DIRBASEMYSQL | grep "/" | sed -e "s%/%%"`
-		foreach BASE ($BASES)
+        # Si il n'y a pas de parametre, on dump toutes les bases que l'on trouve
+		echo "Lancement du dump des bases"
+        chown -R mysql:mysql $DIREXPORTMYSQL
 
-			echo "$BASE"
-			/bin/mkdir -p $DIREXPORTMYSQL/$BASE
-			/bin/chown mysql:mysql $DIREXPORTMYSQL/$BASE
-			$GWBIN mysqlDump $BASE
-			/bin/sleep 10
-		end
+        $MYSQLBIN/mysqldump --all-databases -h $SERVEURMYSQL --port=$PORT --user=root --password=$MYSQLPASSWD >> $DIREXPORTMYSQL/alldb.sql.$DATE.$HEUREDUMP
+        gzip -f -9 $DIREXPORTMYSQL/alldb.sql.$DATE.$HEUREDUMP
+        echo "Dump des bases ok, le fichier est disponible ici :"
+        echo $DIREXPORTMYSQL/alldb.sql.$DATE.$HEUREDUMP.gz
 	endif
 breaksw
 
