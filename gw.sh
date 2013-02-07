@@ -512,7 +512,7 @@ case postgresListeBases:       Liste toutes les bases postgres
     # Recuperation de toutes les bases de postgres
     su - postgres -c "/usr/bin/psql -l" > /tmp/listeBases
     #essai : cat /tmp/listeBases | tail -n +4 | awk -F ' ' '{print $1}' | grep -E '^[a-zA-Z]'
-    cat /tmp/listeBases | awk '{ print $1}' | grep -E '^[a-z]' | grep -vE '^-|^List|^Name|^template'
+    cat /tmp/listeBases | awk '{ print $1}' | grep -E '^[a-z]' | grep -vE '^-|^List|^Name|^Liste|^Nom|^template'`
     #OLD : cat /tmp/listeBases | tail -n +4 | grep -v \( | grep \| |awk -F ' ' '{print $1}'
 breaksw
 
@@ -528,7 +528,7 @@ case postgresDumpAll:          Dump de toutes les bases postgres
     su - postgres -c "/usr/bin/psql -l" > /tmp/listeBases
     #essai : set BASES=`cat /tmp/listeBases | tail -n +4 | awk -F ' ' '{print $1}' | grep -E '^[a-zA-Z]'`
     #OLD : set BASES=`cat /tmp/listeBases | tail -n +4 | grep -v \( | grep \| |awk -F ' ' '{print $1}'`
-    set BASES=`cat /tmp/listeBases | awk '{ print $1}' | grep -E '^[a-z]' | grep -vE '^-|^List|^Name|^template'`
+    set BASES=`cat /tmp/listeBases | awk '{ print $1}' | grep -E '^[a-z]' | grep -vE '^-|^List|^Name|^Liste|^Nom|^template'`
     # On parcours l'ensemble des bases et on fait le dump
     foreach BASE ($BASES)
         $GWBIN postgresDump $BASE
@@ -965,7 +965,7 @@ case serveurImpressionListe:	  Affiche la liste des serveur d'impression disponi
 	#Listage des contextes
 	foreach CONTEXTE ($LISTE)
 		#Le processus du contexte est-il actif ?
-                if ( -f "$PRINRDIR/$CONTEXTE/start_impression.sh" ) then
+                if ( -f "$PRINTDIR/$CONTEXTE/start_impression.sh" ) then
 			#Oui, on l'affiche
 			echo "$CONTEXTE"
 		endif
