@@ -1023,7 +1023,7 @@ case serveurImpressionStart:	  Demarrer les serveurs d impression des contextes 
                 #Non, on le lance
                 if ( -f "$PRINTDIR/$CONTEXTE/start_impression.sh" ) then
                         cd $PRINTDIR/$CONTEXTE/
-                       (./start_impression.sh > /var/log/serveurImpression/$CONTEXTE.log) >& /var/log/serveurImpression/$CONTEXTE.out &
+                       ./start_impression.sh >& /var/log/serveurImpression/$CONTEXTE.log &
                 endif
         else
                 #Oui, message d'avertissement
