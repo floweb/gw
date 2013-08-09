@@ -26,7 +26,7 @@ switch ($OSMAINVERSION)
 		set OS="$OS Squeeze"
 	breaksw
 	case 7:
-		set OS ="$OS Wheezy"
+		set OS="$OS Wheezy"
 	breaksw
 endsw
 
@@ -69,11 +69,11 @@ set GWLOG=/var/log/gw.log
 #
 set MYSQLLOGDIR=/var/log/mysql
 set DIRBASEMYSQL=/etc/mysql
-set DIREXPORTMYSQL=/var/export-mysql
+set DIREXPORTMYSQL=/var/export-mysql/mysql
 set DIRREPLICATEMYSQL=/var/replicate-mysql
 set MYSQLDIR=/etc/init.d/mysql
 set MYSQLBIN=/usr/bin
-set MYSQLPASSWD=motdepasse
+set MYSQLPASSWD=admONLINE64
 set PORT=3307
 set SERVEURMYSQL=localhost
 
@@ -269,7 +269,6 @@ case mysqlDump:                <base> Dump de la base MySQL
 
 		echo "Lancement du dump de la base $2"
 		/bin/mkdir -p $DIREXPORTMYSQL/$2
-		/bin/chown -R mysql:mysql $DIREXPORTMYSQL
 
 		# Dump + desactive les logs binaires
 		echo "SET SQL_LOG_BIN=0;" > $DIREXPORTMYSQL/$2/$2.sql.$DATE.$HEUREDUMP
@@ -279,14 +278,9 @@ case mysqlDump:                <base> Dump de la base MySQL
 		echo $DIREXPORTMYSQL/$2/$2.sql.$DATE.$HEUREDUMP.gz
 
 	else
-        # Si il n'y a pas de parametre, on dump toutes les bases que l'on trouve
-		echo "Lancement du dump des bases"
-        chown -R mysql:mysql $DIREXPORTMYSQL
-
-        $MYSQLBIN/mysqldump --all-databases -h $SERVEURMYSQL --port=$PORT --user=root --password=$MYSQLPASSWD >> $DIREXPORTMYSQL/alldb.sql.$DATE.$HEUREDUMP
-        gzip -f -9 $DIREXPORTMYSQL/alldb.sql.$DATE.$HEUREDUMP
-        echo "Dump des bases ok, le fichier est disponible ici :"
-        echo $DIREXPORTMYSQL/alldb.sql.$DATE.$HEUREDUMP.gz
+       	# Message d'erreur
+		echo "Attention, il manque un parametre"
+		exit 1
 	endif
 breaksw
 
@@ -374,6 +368,34 @@ case mysqlCopie:               <basSource> <baseCible> Copie d une base vers une
 	echo "Envoie des donnees de $COM2 vers $COM3"
 	$MYSQLBIN/mysql -h $SERVEURMYSQL $3 -f --port=$PORT -u root --password=$MYSQLPASSWD --exec="source $DIREXPORTMYSQL.sql"
 	echo "Fin de la copie"
+breaksw
+
+
+#--------------------------------#
+#   Liste des bases MySQL        #
+#--------------------------------#
+
+case mysqlListeBases:       Liste toutes les bases MySQL
+
+	echo "Liste de toutes les bases de MySQL :"
+
+	$MYSQLBIN/mysql -h $SERVEURMYSQL --port=$PORT -u root --password=$MYSQLPASSWD --exec="SHOW DATABASES;" > /tmp/listeMysqlBases
+	cat /tmp/listeMysqlBases | grep -Ev 'Database|schema|mysql' | xargs -n 1 echo
+breaksw
+
+
+#---------------------------------------#
+#   Dump de toutes les bases MySQL      #
+#---------------------------------------#
+
+case mysqlDumpAll:       Dumps de toutes les bases de MySQL
+
+    echo "Début du dumps de toutes les bases de MySQL..."
+
+    $MYSQLBIN/mysql -h $SERVEURMYSQL --port=$PORT -u root --password=$MYSQLPASSWD --exec="SHOW DATABASES;" > /tmp/listeMysqlBases
+    cat /tmp/listeMysqlBases | grep -Ev 'Database|schema|mysql|suivi_dev' | xargs -n 1 $GWBIN mysqlDump
+
+    echo "Fin."
 breaksw
 
 
