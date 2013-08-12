@@ -95,6 +95,23 @@ set WEBDIR=/etc/init.d/apache2
 set WEBLOGDIR=/var/log/apache2
 
 #
+# Variables de gestion de SignServer
+#
+set SIGNSERVERDIR=/opt/signserver
+set SIGNSERVERCONFIGDIR=/opt/conf_signserver/
+set SIGNSERVERBIN=$SIGNSERVERDIR/bin/signserver.sh
+set SIGNSERVERJAVAHOME=/opt/jdk1.6.0
+set JBOSSDIR=/opt/jboss
+
+#
+# Variables de gestion des certificats
+#
+set prefixeAuthority=/opt/keystore/autorite/cacert
+set fichierPassphrase=/opt/keystore/user/passphrase
+set fichierExport=/opt/keystore/user/export
+set directoryCertificatUser=/opt/keystore/user/
+
+#
 # Variables de gestion des serveur FTP
 #
 set FTPDIR=/etc/init.d/vsftpd
