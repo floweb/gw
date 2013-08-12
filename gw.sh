@@ -534,7 +534,7 @@ case postgresListeBases:       Liste toutes les bases postgres
     # Recuperation de toutes les bases de postgres
     su - postgres -c "/usr/bin/psql -l" > /tmp/listeBases
     #essai : cat /tmp/listeBases | tail -n +4 | awk -F ' ' '{print $1}' | grep -E '^[a-zA-Z]'
-    cat /tmp/listeBases | awk '{ print $1}' | grep -E '^[a-z]' | grep -vE '^-|^List|^Name|^Liste|^Nom|^template'`
+    cat /tmp/listeBases | awk '{ print $1}' | grep -E '^[a-z]' | grep -vE '^-|^List|^Name|^Liste|^Nom|^template'
     #OLD : cat /tmp/listeBases | tail -n +4 | grep -v \( | grep \| |awk -F ' ' '{print $1}'
 breaksw
 
