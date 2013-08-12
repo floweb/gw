@@ -73,7 +73,7 @@ set DIREXPORTMYSQL=/var/export-mysql/mysql
 set DIRREPLICATEMYSQL=/var/replicate-mysql
 set MYSQLDIR=/etc/init.d/mysql
 set MYSQLBIN=/usr/bin
-set MYSQLPASSWD=admONLINE64
+set MYSQLPASSWD=motdepasse
 set PORT=3307
 set SERVEURMYSQL=localhost
 
