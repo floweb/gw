@@ -122,20 +122,20 @@ if ($#argv < 1) then
     set COM2="vide"
     set COM3="vide"
 else
-   if ($#argv < 2) then
+    if ($#argv < 2) then
         set COM=$1
-    set COM2="vide"
-    set COM3="vide"
-   else
-        if ($#argv < 3) then
-           set COM=$1
-       set COM2=$2
-       set COM3="vide"
+        set COM2="vide"
+        set COM3="vide"
     else
-       set COM=$1
-       set COM2="$2"
-       set COM3="$3"
-    endif
+        if ($#argv < 3) then
+            set COM=$1
+            set COM2=$2
+            set COM3="vide"
+        else
+            set COM=$1
+            set COM2="$2"
+            set COM3="$3"
+        endif
    endif
 endif
 
@@ -321,7 +321,7 @@ breaksw
 case mysqlStart:              Demarrage du serveur MySQL
 
     echo "Demarrage de MySQL :"
-    service mysql start
+    $MYSQLDIR start
     $GWBIN mysqlRepair
 breaksw
 
@@ -345,7 +345,7 @@ breaksw
 case mysqlStop:       Arreter le serveur MySQL
 
     echo "Arrêt de MySQL :"
-    service mysql stop
+    $MYSQLDIR stop
 breaksw
 
 
@@ -1177,21 +1177,21 @@ case serveurImpressionListe:      Affiche la liste des serveur d'impression disp
     #------------------------------------
     #Usage non conforme ou demande d'aide
     if ( $2 == "-h" || $2 == "-help" || $2 == "--h" || $2 == "--help" ) then
-            #Message d'information sur l'usage du script
-            echo ""
-            echo "Usage :  gw serveurImpressionListe [-h] [-help] [--h] [--help] "
-            echo ""
-            echo "  gw serveurImpressionListe   affiche la liste des serveurs d'impression disponibles"
-            echo ""
-            echo "  -h, -help, --h, --help      affiche ce message"
+        #Message d'information sur l'usage du script
+        echo ""
+        echo "Usage :  gw serveurImpressionListe [-h] [-help] [--h] [--help] "
+        echo ""
+        echo "  gw serveurImpressionListe   affiche la liste des serveurs d'impression disponibles"
+        echo ""
+        echo "  -h, -help, --h, --help      affiche ce message"
         exit 1
     else
         if ( $2 != "" ) then
             echo ""
             echo "Erreur : argument invalide"
-                echo ""
-                echo "Usage :  gw serveurImpressionListe [-h] [-help] [--h] [--help] "
-                exit 1
+            echo ""
+            echo "Usage :  gw serveurImpressionListe [-h] [-help] [--h] [--help] "
+            exit 1
         endif
     endif
     
