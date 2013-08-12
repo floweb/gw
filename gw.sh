@@ -1,7 +1,7 @@
 #!/bin/tcsh
 #-------------------------------------------------------------------------#
 #                                                                         #
-#   OS : Linux - Debian 5 (Lenny) ou 6 (Squeeze)                          #
+#   OS : Linux - Debian (a partir de Lenny)                               #
 #   Description : gw est un programme permettant de gerer des serveurs.   #
 #                                                                         #
 #-------------------------------------------------------------------------#
@@ -12,7 +12,7 @@
 # !!! TODO !!!
 # Mettre un usage pour chaque mauvaise utilisation (mieux que "Attention, il manque un parametre")
 
-# Infos système
+# Infos systeme
 
 set HOSTNAME=`hostname | awk -F'.' '{print $1}'`
 set OS=`cat /etc/issue | cut --delimiter='\' -f 1`
@@ -27,6 +27,9 @@ switch ($OSMAINVERSION)
     breaksw
     case 7:
         set OS="$OS Wheezy"
+    breaksw
+    case 8:
+        set OS="$OS Jessie"
     breaksw
 endsw
 
@@ -145,7 +148,7 @@ switch ($COM)
 
 case apacheStart:              Demarre un serveur apache
 
-    # on démarre apache2
+    # on demarre apache2
     $WEBDIR start
     # Message d'information
     sleep 1
@@ -164,7 +167,7 @@ case apacheStart:              Demarre un serveur apache
     tail -6 $WEBLOGDIR/error.log
 
     echo
-    echo "Le serveur Apache est démarré"
+    echo "Le serveur Apache est demarre"
     echo
 breaksw
 
@@ -195,7 +198,7 @@ case apacheStop:               Arrete un serveur apache
     tail -6 $WEBLOGDIR/error.log
 
     echo
-    echo "Le serveur Apache est arrêté"
+    echo "Le serveur Apache est arrête"
     echo
 breaksw
 
@@ -226,12 +229,12 @@ case apacheReload:             Recharge la configuration du serveur apache
     tail -6 $WEBLOGDIR/error.log
 
     echo
-    echo "La configuration du serveur Apache est rechargée"
+    echo "La configuration du serveur Apache est rechargee"
     echo
 breaksw
 
 #-------------------------------------#
-#   Redémarrage d'un serveur Apache   #
+#   Redemarrage d'un serveur Apache   #
 #-------------------------------------#
 
 case apacheRestart:            Redemarre un serveur apache
@@ -297,13 +300,13 @@ breaksw
 
 
 #----------------------------------#
-#   Redémarrage du serveur MySQL   #
+#   Redemarrage du serveur MySQL   #
 #----------------------------------#
 
 case mysqlRestart:            Redemarre le serveur MySQL
 
     echo
-    echo "Redémarrage de MySQL"
+    echo "Redemarrage de MySQL"
     echo "--------------------"
     echo
     $GWBIN mysqlStop
@@ -317,8 +320,8 @@ breaksw
 
 case mysqlStart:              Demarrage du serveur MySQL
 
-    echo "Démarrage de MySQL :"
-    $MYSQLDIR start
+    echo "Demarrage de MySQL :"
+    service mysql start
     $GWBIN mysqlRepair
 breaksw
 
@@ -330,8 +333,8 @@ breaksw
 case mysqlRepair:         Check et Repair de toutes les bases MySQL
 
     echo "Check et Repair de toutes les bases MySQL :"
-    mysqlcheck --all-databases -h $SERVEURMYSQL --port=$PORT --user=root --password=$MYSQLPASSWD
-    mysqlrepair --all-databases -h $SERVEURMYSQL --port=$PORT --user=root --password=$MYSQLPASSWD
+    $MYSQLBIN/mysqlcheck --all-databases -h $SERVEURMYSQL --port=$PORT --user=root --password=$MYSQLPASSWD
+    $MYSQLBIN/mysqlrepair --all-databases -h $SERVEURMYSQL --port=$PORT --user=root --password=$MYSQLPASSWD
 breaksw
 
 
@@ -342,7 +345,7 @@ breaksw
 case mysqlStop:       Arreter le serveur MySQL
 
     echo "Arrêt de MySQL :"
-    $MYSQLDIR stop
+    service mysql stop
 breaksw
 
 
@@ -360,10 +363,10 @@ case mysqlCopie:               <basSource> <baseCible> Copie d une base vers une
 
     echo "Dump de la base source : $2"
     $MYSQLBIN/mysqldump --port=$PORT --user=root --password=$MYSQLPASSWD $2 >$DIREXPORTMYSQL.sql
-    echo "Début de la copie"
+    echo "Debut de la copie"
     echo "Suppression de la base cible : $3"
     $MYSQLBIN/mysql -h $SERVEURMYSQL --port=$PORT -u root --password=$MYSQLPASSWD --exec="DROP DATABASE $3;"
-    echo "Création de la base cible : $3"
+    echo "Creation de la base cible : $3"
     $MYSQLBIN/mysql -h $SERVEURMYSQL --port=$PORT -u root --password=$MYSQLPASSWD --exec="CREATE DATABASE $3;"
     echo "Envoie des donnees de $COM2 vers $COM3"
     $MYSQLBIN/mysql -h $SERVEURMYSQL $3 -f --port=$PORT -u root --password=$MYSQLPASSWD --exec="source $DIREXPORTMYSQL.sql"
@@ -390,7 +393,7 @@ breaksw
 
 case mysqlDumpAll:       Dumps de toutes les bases de MySQL
 
-    echo "DÃ©but du dumps de toutes les bases de MySQL..."
+    echo "Debut du dumps de toutes les bases de MySQL..."
 
     $MYSQLBIN/mysql -h $SERVEURMYSQL --port=$PORT -u root --password=$MYSQLPASSWD --exec="SHOW DATABASES;" > /tmp/listeMysqlBases
     cat /tmp/listeMysqlBases | grep -Ev 'Database|schema|mysql|suivi_dev' | xargs -n 1 $GWBIN mysqlDump
@@ -400,7 +403,7 @@ breaksw
 
 
 #---------------------------------------------#
-#   Se connecter à une base de donnees MySQL  #
+#   Se connecter a une base de donnees MySQL  #
 #---------------------------------------------#
 
 case mysqlConnect:             <nom-serveur> Se connecter a un serveur mysql en root
@@ -432,7 +435,7 @@ case mysqlPassword:            <utilisateur> <mot de passe>  Changer un mot de p
 
     # creation de la requete SQL
     echo "USE mysql ; UPDATE user SET password=PASSWORD('$3') WHERE user='$2' ; FLUSH PRIVILEGES;"  >/tmp/Password$2.sql
-    echo    "On lance : USE mysql ; UPDATE user SET password=PASSWORD('$3') WHERE user='$2' ; FLUSH PRIVILEGES;"
+    echo "On lance : USE mysql ; UPDATE user SET password=PASSWORD('$3') WHERE user='$2' ; FLUSH PRIVILEGES;"
     $MYSQLBIN/mysql -h $SERVEURMYSQL --port=$PORT -u root --password=$MYSQLPASSWD --exec="source /tmp/Password$2.sql"
 breaksw
 
@@ -504,22 +507,22 @@ breaksw
 
 
 #------------------------------------#
-#   Création d'une base de données   #
+#   Creation d'une base de donnees   #
 #------------------------------------#
 
-case mysqlCreer:              <base> [dev password] [vis password] Crée une base de données avec les utilisateurs appropriés
+case mysqlCreer:              <base> [dev password] [vis password] Cree une base de donnees avec les utilisateurs appropries
 
-    # Si il n'y a pas de paramètre
+    # Si il n'y a pas de parametre
     if ($2 == "") then
         echo "Attention, il manque le nom de la base"
         exit 1
     endif
 
-    # On crée la base de donnée
+    # On cree la base de donnee
     echo "Creation de la base de donnees $2 :"
     $MYSQLBIN/mysql -h $SERVEURMYSQL --port=$PORT -u root --password=$MYSQLPASSWD --exec="CREATE DATABASE $2;"
 
-    echo "Fin de la création de la base de donnees"
+    echo "Fin de la creation de la base de donnees"
 breaksw
 
 
@@ -564,24 +567,24 @@ breaksw
 
 case postgresDump:             <base> Dump de la base postgres
 
-        # Si il n'y a pas de paramere
-        if ($2 == "") then
-                echo "Attention, il manque le nom de la base"
-                echo ""
-                $GWBIN postgresListeBases
-                echo ""
-                exit 1
-        endif
+    # Si il n'y a pas de parametre
+    if ($2 == "") then
+        echo "Attention, il manque le nom de la base"
+        echo ""
+        $GWBIN postgresListeBases
+        echo ""
+        exit 1
+    endif
 
-        mkdir -p $DIREXPORTPGSQL/$2
-        chown -R postgres $DIREXPORTPGSQL/$2
-        set BACKUP="$DIREXPORTPGSQL/$2/$2.$DATE.$HEUREDUMP.backup"
-        echo "Dump de la base $2 en $BACKUP"
-        su - postgres -c "/usr/bin/pg_dump -i -F c -b -f $BACKUP $2"
-        echo "compression du dump"
-        cd $DIREXPORTPGSQL/$2/
-        tar cfvz $2.$DATE.$HEUREDUMP.backup.tar.gz $2.$DATE.$HEUREDUMP.backup
-        rm -f $2.$DATE.$HEUREDUMP.backup
+    mkdir -p $DIREXPORTPGSQL/$2
+    chown -R postgres $DIREXPORTPGSQL/$2
+    set BACKUP="$DIREXPORTPGSQL/$2/$2.$DATE.$HEUREDUMP.backup"
+    echo "Dump de la base $2 en $BACKUP"
+    su - postgres -c "/usr/bin/pg_dump -i -F c -b -f $BACKUP $2"
+    echo "compression du dump"
+    cd $DIREXPORTPGSQL/$2/
+    tar cfvz $2.$DATE.$HEUREDUMP.backup.tar.gz $2.$DATE.$HEUREDUMP.backup
+    rm -f $2.$DATE.$HEUREDUMP.backup
 breaksw
 
 
@@ -591,16 +594,16 @@ breaksw
 
 case postgresListeDump:        Liste tous les dumps disponibles
 
-        set BASES=`ls -F $DIREXPORTPGSQL | grep "/" | sed -e "s%/%%"`
-        foreach BASE ($BASES)
-            echo "Dumps de la base : $BASE"
-            echo "-----------------"
-            set LISTE=`ls -1 $DIREXPORTPGSQL/$BASE`
-            foreach DUMP ($LISTE)
-                echo "$DIREXPORTPGSQL/$BASE/$DUMP"
-            end
-            echo ""
+    set BASES=`ls -F $DIREXPORTPGSQL | grep "/" | sed -e "s%/%%"`
+    foreach BASE ($BASES)
+        echo "Dumps de la base : $BASE"
+        echo "-----------------"
+        set LISTE=`ls -1 $DIREXPORTPGSQL/$BASE`
+        foreach DUMP ($LISTE)
+            echo "$DIREXPORTPGSQL/$BASE/$DUMP"
         end
+        echo ""
+    end
 breaksw
 
 #--------------------------------------#
@@ -608,32 +611,33 @@ breaksw
 #--------------------------------------#
 
 case postgresRestaure:         <base> <dumpSQL.tar.gz> Restaure une base de donnees a partir du fichier dumpSQL au format tar.gz
-        # Si il n'y a pas de parametre
-        if ($2 == "" || $3 == "") then
-            echo "Attention, il manque un parametre"
-            exit 1
-        endif
-        # Si le fichier Dump existe bien
-        if (-f $3) then
-            # On restaure
-            echo "Restauration de la base $2 a partir du fichier $3"
-            cp $3 /tmp/backup.tar.gz
-            cd /tmp/
-            /bin/gunzip backup.tar.gz
-            set DUMP=`/bin/tar -tf backup.tar`
-            /bin/tar -xf backup.tar
-            su - postgres -c "pg_restore -c -d $2 /tmp/$DUMP"
-            echo "Fin de la restauration"
-            echo ""
-            echo "nettoyage fichier tmp"
-            /bin/rm /tmp/backup.tar
-            /bin/rm $DUMP
-            echo ""
-        else
-            # On indique que le fichier n'existe pas
-            echo "le fichier $3 n'existe pas"
-            exit 1
-        endif
+
+    # Si il n'y a pas de parametre
+    if ($2 == "" || $3 == "") then
+        echo "Attention, il manque un parametre"
+        exit 1
+    endif
+    # Si le fichier Dump existe bien
+    if (-f $3) then
+        # On restaure
+        echo "Restauration de la base $2 a partir du fichier $3"
+        cp $3 /tmp/backup.tar.gz
+        cd /tmp/
+        /bin/gunzip backup.tar.gz
+        set DUMP=`/bin/tar -tf backup.tar`
+        /bin/tar -xf backup.tar
+        su - postgres -c "pg_restore -c -d $2 /tmp/$DUMP"
+        echo "Fin de la restauration"
+        echo ""
+        echo "nettoyage fichier tmp"
+        /bin/rm /tmp/backup.tar
+        /bin/rm $DUMP
+        echo ""
+    else
+        # On indique que le fichier n'existe pas
+        echo "le fichier $3 n'existe pas"
+        exit 1
+    endif
 breaksw
 
 #----------------------------------------------------#
@@ -648,13 +652,13 @@ breaksw
 
 
 #-------------------------------------#
-#   Redémarrage du serveur postgres   #
+#   Redemarrage du serveur postgres   #
 #-------------------------------------#
 
 case postgresRestart:     Redemarre le serveur postgres
 
     echo
-    echo "Redémarrage de postgres"
+    echo "Redemarrage de postgres"
     echo "-----------------------"
     echo
     $GWBIN postgresStop
@@ -668,7 +672,7 @@ breaksw
 
 case postgresStart:           Demarrage du serveur postgres
 
-    echo "Démarrage de postgres :"
+    echo "Demarrage de postgres :"
     $POSTGRESDIR start
 breaksw
 
@@ -855,7 +859,7 @@ breaksw
 
 
 #--------------------------------------#
-#    Vérif. existance de certificats   #
+#    Verif. existance de certificats   #
 #--------------------------------------#
 
 case certificatExiste:        <Application> <ID>    verifie si le certificat existe
@@ -924,7 +928,7 @@ case ftpStart:                 Demarrer le serveur FTP
     tail -6 $FTPLOGDIR
 
     echo
-    echo "Le serveur vsftpd est démarré"
+    echo "Le serveur vsftpd est demarre"
     echo
 breaksw
 
@@ -956,13 +960,13 @@ case ftpStop                   Arrete le serveur FTP
     tail -6 $FTPLOGDIR
 
     echo
-    echo "Le serveur vsftpd est arrêté"
+    echo "Le serveur vsftpd est arrête"
     echo
 breaksw
 
 
 #----------------------------------#
-#   Redémarrage d'un serveur FTP   #
+#   Redemarrage d'un serveur FTP   #
 #----------------------------------#
 
 case ftpRestart:               Redemarrer le serveur FTP
@@ -1001,7 +1005,7 @@ case ftpReload:                Recharge la configuration du serveur FTP
     tail -6 $FTPLOGDIR
 
     echo
-    echo "La configuration du serveur vsftpd est rechargée"
+    echo "La configuration du serveur vsftpd est rechargee"
     echo
 breaksw
 
@@ -1012,21 +1016,21 @@ breaksw
 case ftpInfo:                  Affiche des information sur le serveur FTP
 
     echo "Voulez-vous afficher quelques stats sur le serveur ftp ?"
-    echo "Appuyez sur 'Ctrl+C' pour sortir de cet écran"
+    echo "Appuyez sur 'Ctrl+C' pour sortir de cet ecran"
     echo
     echo "Validez en tapant oui :"
     set VALIDSTAT=$<
     if ($VALIDSTAT == "oui") then
         watch ps -C vsftpd -o user,pid,stime,cmd
     else
-        echo "Entrée non égale à oui, on arrête"
+        echo "Entree non egale a oui, on arrête"
         exit 1
     endif
 breaksw
 
 
 #--------------------------------#
-#   Création d'utilisateur FTP   #
+#   Creation d'utilisateur FTP   #
 #--------------------------------#
 
 case ftpCreer:                 Creer un utilisateur FTP
@@ -1072,11 +1076,11 @@ case ftpCreer:                 Creer un utilisateur FTP
         #echo $CHEM >> /home/toto/test.sh
     #endif
 
-    # Mise à jour de la base de données des utilisateurs
+    # Mise a jour de la base de donnees des utilisateurs
     db4.6_load -T -t hash -f $FTPUSERDBDIR/login.txt $FTPUSERDBDIR/login.db
     chmod 600 $FTPUSERDBDIR/login.*
 
-    echo "Utilisateur "$USERFTP" créé."
+    echo "Utilisateur "$USERFTP" cree."
 breaksw
 
 
@@ -1381,10 +1385,10 @@ case serveurImpressionStop:   Arreter les processus des serveurs d impression de
 breaksw
 
 #----------------------------------#
-#   Gestion mémoire - processus    #
+#   Gestion memoire - processus    #
 #----------------------------------#
 
-case appmem:                      _Affiche l'empreinte mémoire d'un ou plusieurs process
+case appmem:                      _Affiche l'empreinte memoire d'un ou plusieurs process
 
     if ($2 == "") then
         echo "Attention, il manque un parametre"
@@ -1414,15 +1418,15 @@ case appmem:                      _Affiche l'empreinte mémoire d'un ou plusieurs
             @ TOTAL_PID = ($RAM_MEM + $SWAP_MEM) / $COUNT_PID
 
             echo ""
-            echo "----- Rapport d'utilisation mémoire de $2 -----"
+            echo "----- Rapport d'utilisation memoire de $2 -----"
             echo ""
             echo "Nombre de processus : $COUNT_PID"
-            echo "Taille swap utilisé ~= $SWAP_MEM Mo"
-            echo "Taille RAM utilisée ~= $RAM_MEM Mo"
+            echo "Taille swap utilise ~= $SWAP_MEM Mo"
+            echo "Taille RAM utilisee ~= $RAM_MEM Mo"
             echo "Total RAM + Swap / processus ~= $TOTAL_PID Mo"
             echo ""
         else
-            echo "Aucun processus ne correspond à $2"
+            echo "Aucun processus ne correspond a $2"
             exit 1
         endif
     endif
@@ -1434,11 +1438,11 @@ breaksw
 #   Affichage des infos sur la machine en cours  #
 #------------------------------------------------#
 
-case systeme:                     _Infos complètes sur le système
+case systeme:                     _Infos completes sur le systeme
 
     if ($USER == "root") then
         echo ""
-        echo "Configuration système"
+        echo "Configuration systeme"
         echo "====================="
 
         if ($PLATEFORME == "i386") then
@@ -1450,20 +1454,20 @@ case systeme:                     _Infos complètes sur le système
         endif
 
         # Infos
-        set RAMTOTAL=`vmstat -s -S M | grep 'total memory' | sed 's/total memory/mémoire totale/' | sed 's/M/Mo/'`
-        set RAMUTILISE=`vmstat -s -S M | grep 'used memory' | sed 's/used memory/mémoire utilisée/' | sed 's/M/Mo/'`
+        set RAMTOTAL=`vmstat -s -S M | grep 'total memory' | sed 's/total memory/memoire totale/' | sed 's/M/Mo/'`
+        set RAMUTILISE=`vmstat -s -S M | grep 'used memory' | sed 's/used memory/memoire utilisee/' | sed 's/M/Mo/'`
         set SWAPTOTAL=`vmstat -s -S M | grep 'total swap' | sed 's/total swap/swap total/' | sed 's/M/Mo/'`
-        set SWAPUTILISE=`vmstat -s -S M | grep 'used swap' | sed 's/used swap/swap utilisé/' | sed 's/M/Mo/'`
+        set SWAPUTILISE=`vmstat -s -S M | grep 'used swap' | sed 's/used swap/swap utilise/' | sed 's/M/Mo/'`
         set NBCPU=`cat /proc/cpuinfo | grep processor | wc -l`
         set CPU=`cat /proc/cpuinfo | grep 'model name' | sed -e 's/:/\n/g' | grep -v model | head -1`
-        # TODO : Disque(s) dur modèle, SMART, etc par ex. ?
+        # TODO : Disque(s) dur modele, SMART, etc par ex. ?
 
         echo ""
         echo "Nom de machine : $HOSTNAME"
         echo "Nom de l'OS : $OS"
         echo "Description de l'OS : $OSNAME"
-        echo "Platforme matérielle : $PLATEFORME"
-        echo "Date & Heure système : $DATETIME"
+        echo "Platforme materielle : $PLATEFORME"
+        echo "Date & Heure systeme : $DATETIME"
         echo "Addresse(s) IP : $IP"
         echo "CPU(s) : $NBCPU $CPU"
         echo "Infos disque :"
@@ -1526,8 +1530,8 @@ case annexes:                  Liste complete des commandes
     echo
     echo "Conventions de syntaxe"
     echo "----------------------"
-    echo "[paramètre] : paramètre optionnel"
-    echo "<paramètre> : paramètre obligatoire"
+    echo "[parametre] : parametre optionnel"
+    echo "<parametre> : parametre obligatoire"
     echo
     echo "Commandes annexes"
     echo "-----------------"
@@ -1555,20 +1559,20 @@ case default:
     echo "---------------"
     cat $0 | grep -E "^case " | grep -v "_" | sed -e "s/case //" | sed -e "s/:/ /" | grep -v "default" | sort | grep $CONFTOUS
     echo
-    echo "Spécifique $HOSTNAME"
+    echo "Specifique $HOSTNAME"
     echo "--------------------"
     cat $0 | grep -E "^case " | grep -v "_" | sed -e "s/case //" | sed -e "s/:/ /" | grep -v "default" | sort | grep $CONFMACHINE
     echo
     echo "Conventions de syntaxe"
     echo "----------------------"
-    echo "[paramètre] : paramètre optionnel"
-    echo "<paramètre> : paramètre obligatoire"
+    echo "[parametre] : parametre optionnel"
+    echo "<parametre> : parametre obligatoire"
     echo
 breaksw
 endsw
 
 #-----------------------#
-# Conservé pour info    #
+# Conserve pour info    #
 #-----------------------#
 
 # Construction d'un mail
@@ -1578,7 +1582,7 @@ endsw
 #Content-transfer-encoding: 8bit
 #From: <$WEBMASTER>
 #To: localhost@localhost.fr
-#Subject: Info redémarrage application SI : $2
+#Subject: Info redemarrage application SI : $2
 
 #Bonjour, l'application $2 vient d'etre relancee.
 #Voici le log d'erreur :
