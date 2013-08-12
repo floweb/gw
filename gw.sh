@@ -274,7 +274,14 @@ case apacheVhosts:             Lister tous les sites virtuels heberges sur le se
     echo "Les sites virtuels bases sur les noms"
     echo "-------------------------------------"
     echo
-    apache2ctl -S
+    if ($USER == "root") then
+        apache2ctl -S
+    else
+        echo ""
+        echo " ::: Connectez-vous en root :::"
+        echo ""
+    endif
+
 breaksw
 
 
