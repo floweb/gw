@@ -684,6 +684,219 @@ case postgresStop:		  Arreter le serveur postgres
 breaksw
 
 
+#-------------------------------#
+#     Arret de SignServer       #
+#-------------------------------#
+
+case signServerStop:                            Arreter le serveur SignServer
+
+    echo "Arret de SignServer :"
+breaksw
+
+
+#-------------------------------#
+#    Reload de SignServer       #
+#-------------------------------#
+
+case signServerReload:                        Recharger les config SignServer
+
+    echo "Reload des workers de SignServer :"
+    # environnement JAVA
+    setenv JAVA_HOME $SIGNSERVERJAVAHOME
+    setenv PATH $PATH":$JAVA_HOME/bin"
+    # environnement signserver
+    setenv APPSRV_HOME $JBOSSDIR
+    setenv SIGNSERVER_HOME $SIGNSERVERDIR
+    setenv SIGNSERVER_NODEID node1
+
+    set LISTE=`$SIGNSERVERBIN getconfig global | awk -F'WORKER' '{print $2}' | awk -F'.' '{print $1}' | sort -bu`
+    foreach WORKER ($LISTE)
+        echo ""
+        echo "chargement du WORKER numero $WORKER"
+        echo ""
+        $SIGNSERVERBIN reload $WORKER
+    end
+breaksw
+
+
+#---------------------------------------#
+#    Suppression worker de SignServer   #
+#---------------------------------------#
+
+case signServerRemove:                        <worker> [oui] supprimer un worker + rechargement si OUI
+
+    echo "Suppression du    worker $2 de SignServer :"
+    # environnement JAVA
+    setenv JAVA_HOME $SIGNSERVERJAVAHOME
+    setenv PATH $PATH":$JAVA_HOME/bin"
+    # environnement signserver
+    setenv APPSRV_HOME $JBOSSDIR
+    setenv SIGNSERVER_HOME $SIGNSERVERDIR
+    setenv SIGNSERVER_NODEID node1
+    $SIGNSERVERBIN removeworker $2
+
+    echo "suppression configuration du worker"
+    set CONFSIGNSERVER="$SIGNSERVERCONFIGDIR/$2.properties"
+    /bin/rm $CONFSIGNSERVER
+
+    if ($3 == 'oui') then
+         $GWBIN signServerReload
+    endif
+breaksw
+
+
+#---------------------------------------#
+#    Liste les workers de SignServer    #
+#---------------------------------------#
+
+case signServerList:                            liste des workers
+
+    # environnement JAVA
+    setenv JAVA_HOME $SIGNSERVERJAVAHOME
+    setenv PATH $PATH":$JAVA_HOME/bin"
+    # environnement signserver
+    setenv APPSRV_HOME $JBOSSDIR
+    setenv SIGNSERVER_HOME $SIGNSERVERDIR
+    setenv SIGNSERVER_NODEID node1
+    $SIGNSERVERBIN getstatus complete all | grep NAME
+breaksw
+
+
+#--------------------------------------#
+#    Charger une config de SignServer  #
+#--------------------------------------#
+
+case signServerChargeConfig:        <configuration> Recharger une config SignServer
+
+    # environnement JAVA
+    setenv JAVA_HOME $SIGNSERVERJAVAHOME
+    setenv PATH $PATH":$JAVA_HOME/bin"
+    # environnement signserver
+    setenv APPSRV_HOME $JBOSSDIR
+    setenv SIGNSERVER_HOME $SIGNSERVERDIR
+    setenv SIGNSERVER_NODEID node1
+    echo ""
+    echo "chargement de la configuration    $2"
+    $SIGNSERVERBIN setproperties $2
+breaksw
+
+
+#-------------------------------#
+#    Creation des certificats   #
+#-------------------------------#
+
+case _certificatCreate:                     creer les certificats
+
+    $GWBIN _certificatCreate
+    if ($? == 10) then
+        $GWBIN certificatCharge
+    endif
+    if ($? == 0) then
+        $GWBIN signServerReload
+    endif
+breaksw
+
+
+case certificatCreate:                        creer les certificats
+
+    echo "--------------------------"
+    echo "Creation des certificats :"
+
+    set LISTE=`find $directoryCertificatUser -name "*.spool"`
+    foreach CERTIF ($LISTE)
+        set RACINE=`echo $CERTIF | awk -F'.spool' '{print $1}'`
+        echo ""
+        echo "creation du certificat en attente $RACINE"
+        echo ""
+
+        openssl genrsa -des3 -out $RACINE.key -passout file:$fichierPassphrase
+        if ($? == 0) then
+            openssl req -batch -new -key $RACINE.key -out $RACINE.csr -config $CERTIF
+            if ($? == 0) then
+                openssl x509 -req -days 3650 -in $RACINE.csr -CA $prefixeAuthority.pem -CAkey $prefixeAuthority.key -set_serial 01 -out $RACINE.pem -passin file:$fichierPassphrase
+                if ($? == 0) then
+                    openssl pkcs12 -export -inkey $RACINE.key -in $RACINE.pem -name signature -out $RACINE.p12 -passin file:$fichierPassphrase -password file:$fichierExport
+                    if ($? == 0) then
+                        mv $CERTIF $RACINE.config
+                        echo "OK $RACINE.config"
+                        endif
+                    endif
+                endif
+            endif
+        endif
+    end
+    exit 10
+breaksw
+
+
+#---------------------------------#
+#    Suppression de certificats   #
+#---------------------------------#
+
+case certificatDelete:        <Application> <ID>    supprime le certificat
+
+    set DIRCERTIF="$directoryCertificatUser/$2/$3"
+    set CERTIF="$directoryCertificatUser/$2/$3/$3.p12"
+    set CONFSIGNSERVER="$SIGNSERVERCONFIGDIR/$2_$3_signer.properties"
+    set NAMEWORKER="$2_$3_signer"
+    if (-f $CERTIF) then
+        echo "suppression de $DIRCERTIF"
+        /bin/rm $DIRCERTIF/*
+        /bin/rmdir $DIRCERTIF
+    else
+        echo "$DIRCERTIF n'existe pas"
+    endif
+    if (-f $CONFSIGNSERVER) then
+        echo "une configuration de signserver est disponible"
+        echo "on supprime aussi le worker signserver"
+        $GWBIN signServerRemove $NAMEWORKER oui
+    endif
+breaksw
+
+
+#--------------------------------------#
+#    Vérif. existance de certificats   #
+#--------------------------------------#
+
+case certificatExiste:        <Application> <ID>    verifie si le certificat existe
+
+    set CERTIF="$directoryCertificatUser/$2/$3/$3.p12"
+    set SPOOLCERTIF="$directoryCertificatUser/$2/$3/$3.spool"
+    set CONFSIGNSERVER="$SIGNSERVERCONFIGDIR/$2_$3_signer.properties"
+    set NAMEWORKER="$2_$3_signer"
+    if (-f $CERTIF) then
+        echo "OK"
+    else
+        if (-f $SPOOLCERTIF) then
+            echo "SPOOL"
+        else
+            echo "NOK"
+        endif
+    endif
+breaksw
+
+
+#--------------------------------------#
+#    Chargement de certificats         #
+#--------------------------------------#
+
+case certificatCharge:        charger les certificats dans SignServer
+
+    echo "--------------------------------------------"
+    echo "Chargement des certificats dans SignServer :"
+
+    set LISTE=`find $directoryCertificatUser -name "*.properties"`
+    foreach CERTIF ($LISTE)
+        set FICHIER=`basename $CERTIF`
+        echo ""
+        echo "Chargement du certificat $FICHIER"
+        echo ""
+        mv $CERTIF $SIGNSERVERCONFIGDIR$FICHIER
+        $GWBIN signServerChargeConfig $SIGNSERVERCONFIGDIR$FICHIER
+    end
+breaksw
+
+
 #--------------------------------#
 #   Demarrage d'un serveur FTP   #
 #--------------------------------#
