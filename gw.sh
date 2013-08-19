@@ -215,7 +215,7 @@ case apacheStop:               Arrete un serveur apache
     tail -6 $WEBLOGDIR/error.log
 
     echo
-    echo "Le serveur Apache est arrête"
+    echo "Le serveur Apache est arrete"
     echo
 breaksw
 
@@ -368,7 +368,7 @@ breaksw
 
 case mysqlStop:       Arreter le serveur MySQL
 
-    echo "Arrêt de MySQL :"
+    echo "Arret de MySQL :"
     $MYSQLDIR stop
 breaksw
 
@@ -559,10 +559,16 @@ case postgresListeBases:       Liste toutes les bases postgres
     echo "Liste de toutes les bases de postgres"
 
     # Recuperation de toutes les bases de postgres
-    su - postgres -c "/usr/bin/psql -l" > /tmp/listeBases
+    if ($USER == "postgres") then
+        /usr/bin/psql -l > /tmp/listeBases
+    else
+        su - postgres -c "/usr/bin/psql -l" > /tmp/listeBases
+        chmod 666 /tmp/listeBases
+    endif
     #essai : cat /tmp/listeBases | tail -n +4 | awk -F ' ' '{print $1}' | grep -E '^[a-zA-Z]'
-    cat /tmp/listeBases | awk '{ print $1}' | grep -E '^[a-z]' | grep -vE '^-|^List|^Name|^Liste|^Nom|^template'
+    cat /tmp/listeBases | awk '{ print $1}' | grep -E '^[a-z]' | grep -vE '^-|^Liste|^Nom|^template|^List|^Name'
     #OLD : cat /tmp/listeBases | tail -n +4 | grep -v \( | grep \| |awk -F ' ' '{print $1}'
+
 breaksw
 
 
@@ -707,7 +713,7 @@ breaksw
 
 case postgresStop:        Arreter le serveur postgres
 
-    echo "Arrêt de postgres :"
+    echo "Arret de postgres :"
     $POSTGRESDIR stop
 breaksw
 
@@ -984,7 +990,7 @@ case ftpStop                   Arrete le serveur FTP
     tail -6 $FTPLOGDIR
 
     echo
-    echo "Le serveur vsftpd est arrête"
+    echo "Le serveur vsftpd est arrete"
     echo
 breaksw
 
@@ -1047,7 +1053,7 @@ case ftpInfo:                  Affiche des information sur le serveur FTP
     if ($VALIDSTAT == "oui") then
         watch ps -C vsftpd -o user,pid,stime,cmd
     else
-        echo "Entree non egale a oui, on arrête"
+        echo "Entree non egale a oui, on arrete"
         exit 1
     endif
 breaksw
@@ -1474,7 +1480,7 @@ case systeme:                     _Infos completes sur le systeme
         else if ($PLATEFORME == "x86_64") then
             set PLATEFORME="64bit"
         else if ($PLATEFORME == "unknown") then
-            set PLATEFORME="unknown (peut-être une machine virtuelle ?)"
+            set PLATEFORME="unknown (peut-etre une machine virtuelle ?)"
         endif
 
         # Infos
