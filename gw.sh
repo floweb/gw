@@ -567,8 +567,7 @@ case postgresListeBases:       Liste toutes les bases postgres
     endif
     #essai : cat /tmp/listeBases | tail -n +4 | awk -F ' ' '{print $1}' | grep -E '^[a-zA-Z]'
     cat /tmp/listeBases | awk '{ print $1}' | grep -E '^[a-z]' | grep -vE '^-|^Liste|^Nom|^template|^List|^Name'
-    #OLD : cat /tmp/listeBases | tail -n +4 | grep -v \( | grep \| |awk -F ' ' '{print $1}'
-
+    rm /tmp/listeBases
 breaksw
 
 
