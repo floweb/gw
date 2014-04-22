@@ -1193,6 +1193,196 @@ case ps:                       Lister tous les processus qui sont actifs sur la 
 
 breaksw
 
+
+#----------------------------------#
+#   Demmarer une instance tomcat   #
+#----------------------------------#
+
+case tomcatStart:         <nomApplication>  demarre une instance de tomcat
+        # On test si il a bien un nom d'application
+        if($2 == "") then
+                echo
+                echo "ATTENTION : Il faut donner le nom de l'instance en parametre"
+                echo "liste des instances disponibles sur la machine :"
+                echo
+                ls  $TOMCATSDIR | grep -v apache | grep tomcat | awk -F@ '{print $1}'
+                echo
+                exit 1
+        else
+                # On verifie la presence du dossier de l'instance
+                if (! -e $TOMCATSDIR/$2) then
+                        echo "Cette instance est introuvable."
+                        exit 1
+                endif
+                # On verifie la presence de la config de l'instance
+                if (! -f $TOMCATSDIR/$2/config.properties) then
+                        echo "la configuration de cette instance est introuvable."
+                        echo "le fichier $TOMCATSDIR/$2/config.properties n'est pas present"
+                        exit 1
+                endif
+
+
+                # On test si on est bien Tomcat ou pas
+                if ($USERIDTEST != "tomcat6") then
+                        chown -R tomcat6:tomcat6 $TOMCATSDIR/$2/*
+                        su tomcat6 -c "$GWBIN tomcatStart $2"
+                else
+                        # On verifie si l'application n'a pas deja ete lancee
+                        set PID=`ps awwux | grep java | grep tomcat | grep $2 | awk -F' ' '{print $2}'`
+                        if ("$PID" != "") then
+                                # On indique que l'instance est deja lancee
+                                echo
+                                echo "Pocessus   : $PID <==> $2"
+                                echo "Erreur     : cette instance semble deja demarree (ou plantee)"
+                                echo "Solution   : gw tomcatStop $2"
+                                echo
+                                exit 1
+                  else
+                                # On vide le work et le temp par securite
+                                rm -Rf $TOMCATSDIR/$2/work/* > & /dev/null
+                                rm -Rf $TOMCATSDIR/$2/temp/* > & /dev/null
+
+                                # On definit les variables
+                                setenv CATALINA_HOME $TOMCATBIN
+                                setenv CATALINA_BASE $TOMCATSDIR/$2/
+                                setenv CATALINA_TMPDIR $TOMCATSDIR/$2/temp
+                                setenv JAVA_HOME `cat $TOMCATSDIR/$2/config.properties | head -n 1 | awk -F "#" '{print $2}'`
+                                setenv JAVA_OPTS `cat $TOMCATSDIR/$2/config.properties | head -n 1 | awk -F "#" '{print $3}'`" -Djava.io.tmpdir=$CATALINA_TMPDIR"
+
+                                # on demarre Tomcat
+                                echo
+                                echo "Options de Tomcat"
+                                echo "-----------------"
+                                $CATALINA_HOME/bin/startup.sh
+
+                                # On test si cela c'est bien passe
+                                if ($? == 0) then
+                                        # Message indiquant le bon fonctionnement
+                                        echo
+                                        echo "Information complementaire"
+                                        echo "--------------------------"
+                                        echo "Demarrage de l'instance $2             [ ok ]"
+                                        echo
+                                else
+                                        # Message indiquant le mauvais fonctionnement
+                                        echo
+                                        echo "Demarrage de l'instance $2             [ echec ]"
+                                        echo "L'instance a rencontre une erreur et n'a pas pu demarer, essaye de la demarrer manuellement avec la commande :"
+                                        echo "$CATALINA_HOME/bin/startup.sh"
+                                        echo
+                                        exit 1
+                                endif
+                        endif
+                endif
+        endif
+breaksw
+
+
+#--------------------------------#
+#   Arreter une instance tomcat  #
+#--------------------------------#
+
+case tomcatStop:          <nominstance>  arrete une instance JAVA
+        # On test si il a bien un nom d'instance
+        if($2 == "") then
+                echo
+                echo "ATTENTION : Il faut donner le nom de l'instance en parametre"
+                echo "Exemple d'instance disponible sur la machine :"
+                echo
+                ls  $TOMCATSDIR | grep -v apache | grep tomcat | awk -F@ '{print $1}'
+                echo
+                exit 1
+        else
+               # On verifie la presence de la config de l'instance
+                if (! -f $TOMCATSDIR/$2/config.properties) then
+                        echo "la configuration de cette instance est introuvable."
+                        echo "le fichier $TOMCATSDIR/$2/config.properties n'est pas present"
+                        exit 1
+                endif
+
+                # On recupere le numero de processus
+                set PID=`ps awwux | grep java | grep $2 | awk -F' ' '{print $2}'`
+                # Si l'instance n'est pas lancee
+                if ("$PID" == "") then
+                        # Message d'inofrmation
+                        echo
+                        echo "Erreur   : l'instance $2 n'est pas demarree !"
+                        echo "Solution : gw tomcatStart $2"
+                        echo
+                        exit 1
+                else
+                        # On definit les variables
+                        setenv CATALINA_HOME $TOMCATBIN
+                        setenv CATALINA_BASE $TOMCATSDIR/$2/
+                        setenv CATALINA_TMPDIR $TOMCATSDIR/$2/temp
+                        setenv JAVA_HOME `cat $TOMCATSDIR/$2/config.properties | head -n 1 | awk -F "#" '{print $2}'`
+                        setenv JAVA_OPTS `cat $TOMCATSDIR/$2/config.properties | head -n 1 | awk -F "#" '{print $3}'`" -Djava.io.tmpdir=$CATALINA_TMPDIR"
+
+                        # On stop l'instance
+                        $CATALINA_HOME/bin/shutdown.sh > & /dev/null
+                        sleep 2
+                        # On recupere le numero de processus
+                        set PID=`ps awwux | grep java | grep tomcat | grep $2 | awk -F' ' '{print $2}'`
+                        if ("$PID" == "") then
+                                # Message indiquant le bon fonctionnement
+                                echo
+                                echo "Arret de l'instance $2             [ ok ]"
+                                echo
+                                echo "Vous pouvez verifier que l'instance est bien arretez avec la commande :"
+                                echo "gw ps | grep $2"
+                                echo
+                                exit
+                        else
+                                # On commence une boucle de 10 minutes
+                                set CPT=0
+                                while ($CPT < 60)
+                                        # On attend 10 secondes
+                                        sleep 10
+                                        # On recupere le numero de processus
+                                        set PID=`ps awwux | grep java | grep tomcat | grep $2 | awk -F' ' '{print $2}'`
+                                        if ("$PID" == "") then
+                                                # Message indiquant le bon fonctionnement
+                                                echo
+                                                echo "Arret de l'instance $2             [ ok ]"
+                                                echo
+                                                echo "Vous pouvez verifier que l'instance est bien arretez avec la commande :"
+                                                echo "gw ps | grep $2"
+                                                echo
+                                                exit
+                                        else
+                                                # On incremente cpt
+                                                @ CPT++
+                                                echo "Tentative d'arret $CPT"
+                                        endif
+                                end
+                        endif
+                        # Si on a fait 10 passage on force le kill
+                        if($CPT == 60) then
+                                # Message indiquant le mauvais fonctionnement
+                                echo
+                                echo "L'instance a rencontre une erreur lors de l'arret !"
+                        endif
+                endif
+        endif
+breaksw
+
+
+#--------------------------------------#
+#   Redemarrage des instances tomcat   #
+#--------------------------------------#
+
+case tomcatRestart:     Redemarrer des instances tomcat
+
+    echo
+    echo "Redemarrage des instances tomcat"
+    echo "----------------------------------------"
+    echo
+    $GWBIN tomcatStop
+    $GWBIN tomcatStart
+breaksw
+
+
+
 #-----------------------------------------------------#
 #   Demarrer des serveurs d'impression de contextes   #
 #-----------------------------------------------------#
@@ -1412,6 +1602,22 @@ case serveurImpressionStop:   Arreter les processus des serveurs d impression de
     exit $EXITCODE
 
 breaksw
+
+
+#--------------------------------------------------------#
+#   Redemarrage des serveurs d'impression de contextes   #
+#--------------------------------------------------------#
+
+case serveurImpressionRestart:     Redemarrer des serveurs d'impressions GEO
+
+    echo
+    echo "Redemarrage des serveurs impressions GEO"
+    echo "----------------------------------------"
+    echo
+    $GWBIN serveurImpressionStop
+    $GWBIN serveurImpressionStart
+breaksw
+
 
 #----------------------------------#
 #   Gestion memoire - processus    #
