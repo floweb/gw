@@ -1,7 +1,7 @@
 #!/bin/bash
 #---------------------------------------------------------------------------#
 #                                                                           #
-#   OS : Linux - Debian 5 (Lenny) ou 6 (Squeeze)                            #
+#   OS : Linux - Debian 5/6/7                                               #
 #   Description : Permet d'installer gw sur différents serveurs simplement  #
 #                                                                           #
 #---------------------------------------------------------------------------#
