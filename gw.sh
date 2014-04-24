@@ -120,6 +120,14 @@ set FTPCONFDIR=/etc/vsftpd.conf
 set FTPUSERDBDIR=/etc/vsftpd-login
 
 #
+# Variables de gestion des serveur Tomcat
+#
+set USERIDTEST=`/usr/bin/whoami`
+set TOMCATSDIR=/opt
+set TOMCATBIN=/opt/apache-tomcat-6
+
+
+#
 # Variable de gestion des serveurs d'impression
 #
 set PRINTDIR=/opt/serveurImpression
@@ -1208,6 +1216,11 @@ case tomcatStart:         <nomApplication>  demarre une instance de tomcat
                 ls  $TOMCATSDIR | grep -v apache | grep tomcat | awk -F@ '{print $1}'
                 echo
                 exit 1
+        else if("$COM2" == "all") then
+            set CONTEXTES=`ls  $TOMCATSDIR | grep -v apache | grep tomcat | awk -F@ '{print $1}'`
+            foreach CONTEXTE ($CONTEXTES)
+                $GWBIN $COM $CONTEXTE
+            end
         else
                 # On verifie la presence du dossier de l'instance
                 if (! -e $TOMCATSDIR/$2) then
@@ -1292,6 +1305,11 @@ case tomcatStop:          <nominstance>  arrete une instance JAVA
                 ls  $TOMCATSDIR | grep -v apache | grep tomcat | awk -F@ '{print $1}'
                 echo
                 exit 1
+        else if("$COM2" == "all") then
+            set CONTEXTES=`ls  $TOMCATSDIR | grep -v apache | grep tomcat | awk -F@ '{print $1}'`
+            foreach CONTEXTE ($CONTEXTES)
+                $GWBIN $COM $CONTEXTE
+            end
         else
                # On verifie la presence de la config de l'instance
                 if (! -f $TOMCATSDIR/$2/config.properties) then
@@ -1368,17 +1386,27 @@ breaksw
 
 
 #--------------------------------------#
-#   Redemarrage des instances tomcat   #
+#   Redemarrer une instances tomcat    #
 #--------------------------------------#
 
-case tomcatRestart:     Redemarrer des instances tomcat
+case tomcatRestart:     Redemarrer une instances tomcat
 
     echo
-    echo "Redemarrage des instances tomcat"
-    echo "----------------------------------------"
+    echo "Redemarrer une instances tomcat"
+    echo "-------------------------------"
     echo
-    $GWBIN tomcatStop
-    $GWBIN tomcatStart
+    if($2 == "") then
+        echo
+        echo "ATTENTION : Il faut donner le nom de l'instance en parametre"
+        echo "Exemple d'instance disponible sur la machine :"
+        echo
+        ls  $TOMCATSDIR | grep -v apache | grep tomcat | awk -F@ '{print $1}'
+        echo
+        exit 1
+    else
+        $GWBIN tomcatStop $2
+        $GWBIN tomcatStart $2
+    endif
 breaksw
 
 
@@ -1434,174 +1462,81 @@ breaksw
 #   Demarrer des serveurs d'impression de contextes   #
 #-----------------------------------------------------#
 
-case serveurImpressionStart:      Demarrer les serveurs d impression des contextes demandes
+case serveurImpressionStart:      <all|nomDuContexte> Demarrer les serveurs d impression des contextes demandes
 
-    #----------------------
-    #Decalage des arguments
-    shift
-    
-    #-----------------------
-    #Code d'erreur de sortie
-    set EXITCODE=0
-    #Recherche des processus d'impression deja lances
-    set PROCESS=`ps awwxx | grep PrintManager | grep -v grep`
-    #Conversion des arguments en minuscules
-    set ARG=`echo $* | tr '[:upper:]' '[:lower:]'`
-    
-    #------------------------------------
-    #Usage non conforme ou demande d'aide
-    if ( "$1" == "" || "$1" == "-h" || "$1" == "-help" || "$1" == "--h" || "$1" == "--help" ) then
-        #Message d'information sur l'usage du script
-        echo ""
-        echo "Usage :  gw serveurImpressionstart [-h] [-help] [--h] [--help] [all] [contexte1 ...]"
-        echo ""
-        echo "  -h, -help, --h, --help  affiche ce message"
-        echo ""
-        echo "  all                     demarre les serveurs d'impression de tous les"
-        echo "                          contextes"
-        echo ""
-        echo "  contexte1 ...           demarre les serveurs d'impression des contextes"
-        echo "                          rentres en parametres"
-        exit 1
-    endif
-    
-    #-----------------------------------------------------------
-    #Detection de la presence de la presence de l'argument "all"
-    if ( "$ARG" == "all" ) then
-        #Oui, remplacement automatique des arguments du script par tous les contextes
-        cd $PRINTDIR/
-        set ARG=`ls -d */|cut -d"/" -f1`
-    endif
-    
-    #------------------------
-    #Traitement des contextes
-    foreach CONTEXTE ($ARG)
-        #Le processus du contexte est-il deja en cours d'execution ?
-        if ( `echo "$PROCESS" | grep $CONTEXTE | grep -v grep | grep -v "gw serveurImpressionStart"` == "" ) then
-                #Non, on le lance
-                if ( -f "$PRINTDIR/$CONTEXTE/start_impression.sh" ) then
-                        cd $PRINTDIR/$CONTEXTE/
-                       ./start_impression.sh >& /var/log/serveurImpression/$CONTEXTE.log &
-                endif
+
+        #------------------------------------
+        #Usage non conforme ou demande d'aide
+        if ("$COM2" == "" || "$COM2" == "-h" || "$COM2" == "--help") then
+                #Message sur l'usage du script
+                echo ""
+                echo "Usage :  gw serveurImpressionStart <all|contexte>"
+                echo ""
+                echo "  all                     demarre les serveurs d'impression de tous les contextes"
+                echo "  nomDuContexte           demarre le serveur d'impression du contexte demande"
+                exit 1
+        endif
+
+        cd $PRINTDIR
+        if ("$COM2" == "all") then
+          set CONTEXTES=`ls`
+          foreach CONTEXTE ($CONTEXTES)
+             if ( -f "$PRINTDIR/$CONTEXTE/start_impression.sh" ) then
+                 $GWBIN $COM $CONTEXTE
+             endif
+          end
         else
-                #Oui, message d'avertissement
-                echo "Serveur d'impression du contexte $CONTEXTE deja lance"
-                set EXITCODE=`expr $EXITCODE + 1`
-                continue
+           if ( -f "$PRINTDIR/$COM2/start_impression.sh" ) then
+                  echo "demarrage de $COM2"
+                  if ((`ps awwxx | grep PrintManager | grep $COM2 | grep -v grep | grep -v "gw serveurImpressionStart"` == "" )) then
+                    cd $PRINTDIR/$COM2
+                    ./start_impression.sh >& /var/log/serveurImpression/$COM2.log &
+                  else
+                    echo "$COM2 deja demarre"
+                  endif
+            else
+                 echo "Le contexte $COM2 n'est pas correct"
+            endif
         endif
-        sleep 1
-        #Le processus est-il correctement execute ?
-        if (( `ps awwxx | grep PrintManager | grep $CONTEXTE | grep -v grep | grep -v "gw serveurImpressionStart"` != "" )) then
-                #Oui, on valide le lancement
-                echo "Processus $CONTEXTE correctement lance"
-        else
-        #Non, le contexte existe-t-il ?
-                if ( -f "/opt/serveurImpression/$CONTEXTE/start_impression.sh" ) then
-                    #Non, message d'avertissement car pas de lancement
-                    echo "Erreur de lancement du serveur d'impression $CONTEXTE."
-                    set EXITCODE=`expr $EXITCODE + 1`
-        endif
-        endif
-    end
-    exit $EXITCODE
 
 breaksw
+
 
 #-----------------------------------------------------#
 #   Arreter des serveurs d'impression de contextes    #
 #-----------------------------------------------------#
 
-case serveurImpressionStop:   Arreter les processus des serveurs d impression des contextes demandes
+case serveurImpressionStop:       <all|nomDuContexte> Arreter les processus des serveurs d impression des contextes demandes
 
-    #Decalage des arguments
-    shift
-    
-    #-----------------------
-    #Code d'erreur de sortie
-    set EXITCODE=0
-    #------------------------------------------------
-    #Recherche des processus d'impression deja lances
-    set PROCESS=`ps awwxx | grep PrintManager | grep -v grep | grep -v "gw serveurImpressionStop"`
-
-    #--------------------------------------
-    #Conversion des arguments en minuscules
-    set ARG=`echo $* | tr '[:upper:]' '[:lower:]'`
-
-    #------------------------------------
-    #Usage non conforme ou demande d'aide
-    if ( $1 == "" || $1 == "-h" || $1 == "-help" || $1 == "--h" || $1 == "--help" ) then
-        #Message d'information sur l'usage du script
-            echo ""
-            echo "Usage : gw serveurImpressionStop [-h] [-help] [--h] [--help] [all] [contexte1 ...]"
-            echo ""
-            echo "  -h, -help, --h, --help  affiche ce message"
-            echo ""
-            echo "  all                     stoppe les serveurs d'impression de tous les"
-            echo "                          contextes en cours d'execution"
-            echo ""
-            echo "  contexte1 ...           stoppe les serveurs d'impression des contextes"
-            echo "                          rentres en parametres"
-            exit 1
-    endif
-
-    #--------------------------------------------
-    #Detection de la presence de l'argument "all"
-    if ( "$ARG" == "all" ) then
-        #Oui, remplacement automatique de $ARG par tous les contextes et conservation de la donnee du parametre all
-            if ( "$PROCESS" == "" ) then
-            echo "Aucun processus a arreter. Fin du script"
-            exit $EXITCODE
+        #------------------------------------
+        #Usage non conforme ou demande d'aide
+        if ( $COM2 == "" || $COM2 == "-h" || $COM2 == "--help" ) then
+                #Message d'information sur l'usage du script
+                echo ""
+                echo "Usage : gw serveurImpressionStop <all|contexte>"
+                echo ""
+                echo "  all                     stoppe l'ensemble des contextes lances"
+                echo "  nomDuContexte                stoppe le serveur d'impression du contexte specifie"
+                exit 1
+        endif
+        cd $PRINTDIR
+        if ("$COM2" == "all") then
+          set CONTEXTES=`ls`
+          foreach CONTEXTE ($CONTEXTES)
+                 $GWBIN $COM $CONTEXTE
+          end
         else
-                cd  $PRINTDIR/
-                set ARG=`ls -d */|cut -d"/" -f1`
-            set ARGALL="1"
+           set PID=`ps awwxx | grep PrintManager | grep $COM2 | grep -v grep  | awk -F' ' '{print $1}'`
+           if ($PID == "") then
+             echo "$COM2 pas demarre"
+           else
+             echo "arret de $COM2"
+             kill $PID
+           endif
         endif
-    else
-        set ARGALL=""
-    endif
-
-    #------------------------------------------------------------------------------
-    #Terminaison des processus de serveurs d'impression pour les contextes demandes
-    foreach CONTEXTE ($ARG)
-        #Le contexte saisi est-il valide ?
-                if ( -f "$PRINTDIR/$CONTEXTE/start_impression.sh" ) then
-            #Oui, est-il en cours d'execution ?
-                    if ( `echo "$PROCESS" | grep $CONTEXTE | grep -v grep | grep -v "gw serveurImpressionStop"` != "") then
-                #Oui, arret du process
-                kill -9 `echo "$PROCESS"| grep $CONTEXTE | awk -F' ' '{print $1}'`
-                else
-                if ( "$ARGALL" == "" ) then
-                    #Non, il n'y a rien a stopper alors que le serveur etait specifie
-                    echo "Aucun processus d'impression pour le contexte $CONTEXTE actif. Aucune action a effectuer"
-                    set EXITCODE=`expr $EXITCODE + 1`
-                    continue
-                else
-                    #Non mais l'argument all specifiant de rechercher parmi tous les contextes, il est normal
-                    #de tomber sur un contexte non lance, donc on ignore l'erreur
-                    continue
-                endif
-            endif
-            #Le processus est-il correctement stoppe ?
-                if ( `ps awwxx | grep PrintManager | grep $CONTEXTE | grep -v grep | grep -v "gw serveurImpressionStop"` == "" ) then
-                #Oui, on valide l'arret
-                echo "Processus $CONTEXTE correctement arrete"
-                else
-                #Non, message d'avertissement
-                echo "Erreur d'arret du processus du serveur d'impression $CONTEXTE. Veuillez relancer le script"
-                set EXITCODE=`expr $EXITCODE + 1`
-                endif
-                else    if ( "$ARGALL" == "1" ) then
-                #Non, cas de l'argument "all" : les contextes en erreur sont ignores
-                continue
-            else
-                #Non, contexte explicitement specifie : on signale l' erreur
-                echo "Le contexte $CONTEXTE n'existe pas ou il ne dispose pas de serveur d'impression"
-            endif
-        endif
-    end
-    exit $EXITCODE
 
 breaksw
+
 
 
 #--------------------------------------------------------#
@@ -1614,8 +1549,18 @@ case serveurImpressionRestart:     Redemarrer des serveurs d'impressions GEO
     echo "Redemarrage des serveurs impressions GEO"
     echo "----------------------------------------"
     echo
-    $GWBIN serveurImpressionStop
-    $GWBIN serveurImpressionStart
+    if($2 == "") then
+        echo
+        echo "ATTENTION : Il faut donner le nom de l'instance en parametre"
+        echo "Exemple d'instance disponible sur la machine :"
+        echo
+        ls  $TOMCATSDIR | grep -v apache | grep tomcat | awk -F@ '{print $1}'
+        echo
+        exit 1
+    else
+        $GWBIN serveurImpressionStop $2
+        $GWBIN serveurImpressionStart $2
+    endif
 breaksw
 
 
